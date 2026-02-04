@@ -1,0 +1,41 @@
+# Для сборки нужны Dockerfile в ../api-gateway и ../user-service.
+# Для локального прогона без Docker: запустите сервисы вручную и используйте make test-local.
+services:
+  api-gateway:
+    build:
+      context: ../api-gateway
+    container_name: psds-api-gateway-test
+    environment:
+      - APP_ENV=test
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  user-service:
+    build:
+      context: ../user-service
+    container_name: psds-user-service-test
+    environment:
+      - APP_ENV=test
+    depends_on:
+      api-gateway:
+        condition: service_started
+
+  mitmproxy:
+    image: mitmproxy/mitmproxy:latest
+    container_name: psds-mitmproxy-test
+    command: mitmweb --web-host 0.0.0.0 --listen-port 8081 --save-stream-file /data/traffic.mitm
+    ports:
+      - "8081:8081"
+      - "8082:8080"
+    volumes:
+      - ./mitmproxy-data:/data
+
+networks:
+  default:
+    name: psds-test-network
+
