@@ -9,7 +9,6 @@ from qa_tests import data_factory
 from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feature, mark_severity, mark_story
 from qa_tests.http_client import ApiGatewayClient
 from qa_tests.metrics import measure_test_case
-from qa_tests.http_client import ApiGatewayClient
 from qa_tests.models import AuthRequest, AuthResponse
 
 
@@ -50,4 +49,17 @@ def test_user_registration_and_authentication(api_gateway_client: ApiGatewayClie
             auth_tokens = AuthResponse.model_validate(auth_resp.json)
             assert auth_tokens.access_token
             assert auth_tokens.token_type.lower() == "bearer"
+
+        # Refresh токена
+        with allure_step("Обновление токена через refresh"):
+            refresh_payload = {"refresh_token": auth_tokens.refresh_token or ""}
+            assert refresh_payload["refresh_token"], "refresh_token должен быть в ответе login"
+            refresh_resp = api_gateway_client.auth_refresh(refresh_payload)
+            assert refresh_resp.status_code == 200
+            assert refresh_resp.json and "accessToken" in refresh_resp.json
+
+        # Logout
+        with allure_step("Выход (logout)"):
+            logout_resp = api_gateway_client.auth_logout(auth_tokens.access_token)
+            assert logout_resp.status_code in (200, 204)
 

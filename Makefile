@@ -46,6 +46,11 @@ test-api-gateway-local:
 test-user-service-local:
 	@echo "==> Локальные тесты, фокус на User Service"
 	@$(PYTHON) -m pytest \
+		tests/test_health_user_service.py \
 		tests/test_auth_flow.py \
-		tests/test_validation_negative.py
+		tests/test_validation_negative.py \
+		tests/test_me_user_service.py \
+		tests/test_users_user_service.py \
+		tests/test_sessions_user_service.py \
+		tests/test_operators_user_service.py
 

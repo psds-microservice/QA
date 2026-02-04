@@ -59,6 +59,19 @@ class ApiPaths:
 
     users_register: str
     auth_login: str
+    auth_refresh: str
+    auth_logout: str
+    users_me: str
+    users_by_id: str  # /api/v1/users/{id}
+    users_presence: str  # /api/v1/users/{user_id}/presence
+    users_sessions: str  # /api/v1/users/{id}/sessions
+    users_active_sessions: str  # /api/v1/users/{id}/active-sessions
+    sessions_validate: str
+    operators_available: str
+    operators_availability: str  # PUT /api/v1/operators/availability
+    operators_stats: str
+    operators_verify: str  # /api/v1/operators/{id}/verify
+    operators_availability_by_id: str  # /api/v1/operators/{user_id}/availability
     video_sessions: str
     video_sessions_join: str
     limits_rate_limited: str
@@ -153,6 +166,30 @@ def get_settings() -> Settings:
     api_paths = ApiPaths(
         users_register=_get_env("API_USERS_REGISTER_PATH", "/api/v1/auth/register"),
         auth_login=_get_env("API_AUTH_LOGIN_PATH", "/api/v1/auth/login"),
+        auth_refresh=_get_env("API_AUTH_REFRESH_PATH", "/api/v1/auth/refresh"),
+        auth_logout=_get_env("API_AUTH_LOGOUT_PATH", "/api/v1/auth/logout"),
+        users_me=_get_env("API_USERS_ME_PATH", "/api/v1/users/me"),
+        users_by_id=_get_env("API_USERS_BY_ID_PATH", "/api/v1/users/{id}"),
+        users_presence=_get_env("API_USERS_PRESENCE_PATH", "/api/v1/users/{user_id}/presence"),
+        users_sessions=_get_env("API_USERS_SESSIONS_PATH", "/api/v1/users/{id}/sessions"),
+        users_active_sessions=_get_env(
+            "API_USERS_ACTIVE_SESSIONS_PATH", "/api/v1/users/{id}/active-sessions"
+        ),
+        sessions_validate=_get_env("API_SESSIONS_VALIDATE_PATH", "/api/v1/sessions/validate"),
+        operators_available=_get_env(
+            "API_OPERATORS_AVAILABLE_PATH", "/api/v1/operators/available"
+        ),
+        operators_availability=_get_env(
+            "API_OPERATORS_AVAILABILITY_PATH", "/api/v1/operators/availability"
+        ),
+        operators_stats=_get_env("API_OPERATORS_STATS_PATH", "/api/v1/operators/stats"),
+        operators_verify=_get_env(
+            "API_OPERATORS_VERIFY_PATH", "/api/v1/operators/{id}/verify"
+        ),
+        operators_availability_by_id=_get_env(
+            "API_OPERATORS_AVAILABILITY_BY_ID_PATH",
+            "/api/v1/operators/{user_id}/availability",
+        ),
         video_sessions=_get_env("API_VIDEO_SESSIONS_PATH", "/v1/video/sessions"),
         video_sessions_join=_get_env(
             "API_VIDEO_SESSIONS_JOIN_PATH", "/v1/video/sessions/{session_id}/join"

@@ -71,6 +71,10 @@ class BaseApiClient:
 
         return ApiResponse(status_code=resp.status_code, json=payload, raw=resp)
 
+    def get(self, path: str, **kwargs: Any) -> ApiResponse:
+        """GET запрос по относительному path (например /health, /ready)."""
+        return self._request("GET", path, **kwargs)
+
 
 class ApiGatewayClient(BaseApiClient):
     """Client Object для API Gateway. Пути эндпоинтов задаются через api_paths (из конфига)."""
@@ -99,6 +103,172 @@ class ApiGatewayClient(BaseApiClient):
     def authenticate(self, payload: Dict[str, Any]) -> ApiResponse:
         return self._request(
             "POST", self._p("auth_login"), json_body=payload, expected_status=200
+        )
+
+    def auth_refresh(self, payload: Dict[str, Any]) -> ApiResponse:
+        return self._request(
+            "POST", self._p("auth_refresh"), json_body=payload, expected_status=200
+        )
+
+    def auth_logout(self, token: str) -> ApiResponse:
+        # Сервис может вернуть 200 или 204
+        return self._request(
+            "POST",
+            self._p("auth_logout"),
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=(200, 204),
+        )
+
+    def get_me(self, token: str) -> ApiResponse:
+        return self._request(
+            "GET",
+            self._p("users_me"),
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def update_me(self, token: str, payload: Dict[str, Any]) -> ApiResponse:
+        return self._request(
+            "PUT",
+            self._p("users_me"),
+            json_body=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def get_user(self, token: str, user_id: str) -> ApiResponse:
+        return self._request(
+            "GET",
+            self._p("users_by_id", id=user_id),
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def update_user_by_id(
+        self, token: str, user_id: str, payload: Dict[str, Any]
+    ) -> ApiResponse:
+        return self._request(
+            "PUT",
+            self._p("users_by_id", id=user_id),
+            json_body=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def delete_user(self, token: str, user_id: str) -> ApiResponse:
+        return self._request(
+            "DELETE",
+            self._p("users_by_id", id=user_id),
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=(200, 204),
+        )
+
+    def update_presence(self, token: str, user_id: str, is_online: bool) -> ApiResponse:
+        return self._request(
+            "PUT",
+            self._p("users_presence", user_id=user_id),
+            json_body={"is_online": is_online},
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def list_user_sessions(
+        self,
+        token: str,
+        user_id: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> ApiResponse:
+        path = self._p("users_sessions", id=user_id)
+        if limit is not None or offset is not None:
+            parts = []
+            if limit is not None:
+                parts.append(f"limit={limit}")
+            if offset is not None:
+                parts.append(f"offset={offset}")
+            path = f"{path}?{'&'.join(parts)}"
+        return self._request(
+            "GET",
+            path,
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def list_active_sessions(self, token: str, user_id: str) -> ApiResponse:
+        return self._request(
+            "GET",
+            self._p("users_active_sessions", id=user_id),
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def create_session(
+        self, token: str, user_id: str, payload: Dict[str, Any]
+    ) -> ApiResponse:
+        # Сервис может вернуть 200 или 201
+        return self._request(
+            "POST",
+            self._p("users_sessions", id=user_id),
+            json_body=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=(200, 201),
+        )
+
+    def validate_session(self, payload: Dict[str, Any]) -> ApiResponse:
+        return self._request(
+            "POST",
+            self._p("sessions_validate"),
+            json_body=payload,
+            expected_status=200,
+        )
+
+    def operators_available(
+        self,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> ApiResponse:
+        path = self._p("operators_available")
+        if limit is not None or offset is not None:
+            parts = []
+            if limit is not None:
+                parts.append(f"limit={limit}")
+            if offset is not None:
+                parts.append(f"offset={offset}")
+            path = f"{path}?{'&'.join(parts)}"
+        return self._request("GET", path, expected_status=200)
+
+    def operators_availability(self, token: str, available: bool) -> ApiResponse:
+        return self._request(
+            "PUT",
+            self._p("operators_availability"),
+            json_body={"available": available},
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def operators_stats(self) -> ApiResponse:
+        return self._request("GET", self._p("operators_stats"), expected_status=200)
+
+    def operators_verify(
+        self, token: str, operator_id: str, status: str
+    ) -> ApiResponse:
+        return self._request(
+            "POST",
+            self._p("operators_verify", id=operator_id),
+            json_body={"status": status},
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
+        )
+
+    def operators_availability_by_id(
+        self, token: str, user_id: str, is_available: bool
+    ) -> ApiResponse:
+        return self._request(
+            "PUT",
+            self._p("operators_availability_by_id", user_id=user_id),
+            json_body={"is_available": is_available},
+            headers={"Authorization": f"Bearer {token}"},
+            expected_status=200,
         )
 
     def create_video_session(self, token: str, payload: Dict[str, Any]) -> ApiResponse:
@@ -134,5 +304,8 @@ class UserServiceClient(BaseApiClient):
     """
 
     def health(self) -> ApiResponse:
-        return self._request("GET", "/health")
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
 

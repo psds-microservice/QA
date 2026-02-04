@@ -35,10 +35,15 @@ End-to-end фреймворк для тестирования микросерв
   - `fixtures.py` – общие pytest-фикстуры.
 - `tests/` – e2e-сценарии:
   - `test_auth_flow.py` – регистрация и аутентификация.
+  - `test_health_user_service.py` – health/ready User Service.
+  - `test_me_user_service.py`, `test_users_user_service.py` – me и users по id.
+  - `test_sessions_user_service.py` – сессии (создание, список, валидация).
+  - `test_operators_user_service.py` – операторы (available, stats, availability).
+  - `test_validation_negative.py` – негативные сценарии валидации (register, login, refresh).
   - `test_video_session_realtime.py` – видеосессия + WebSocket чат.
   - `test_rate_limiting.py` – rate limiting на API Gateway.
-  - `test_validation_negative.py` – негативные сценарии валидации.
   - `test_openapi_contracts.py` – проверка OpenAPI/Swagger контракта.
+- `docs/USER_SERVICE_COVERAGE.md` – **текущее покрытие User Service и бэклог тестов** (что ещё можно покрыть, в т.ч. негативные сценарии).
 
 ### Установка
 
