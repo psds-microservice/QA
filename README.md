@@ -41,9 +41,11 @@ End-to-end фреймворк для тестирования микросерв
   - `test_operators_user_service.py` – операторы (available, stats, availability).
   - `test_validation_negative.py` – негативные сценарии валидации (register, login, refresh).
   - `test_video_session_realtime.py` – видеосессия + WebSocket чат.
+  - `test_api_gateway.py` – только API Gateway: health, status, OpenAPI контракт (video/status).
   - `test_rate_limiting.py` – rate limiting на API Gateway.
-  - `test_openapi_contracts.py` – проверка OpenAPI/Swagger контракта.
-- `docs/USER_SERVICE_COVERAGE.md` – **текущее покрытие User Service и бэклог тестов** (что ещё можно покрыть, в т.ч. негативные сценарии).
+  - `test_openapi_contracts.py` – проверка OpenAPI с путями auth (набор User Service).
+- **docs/TEST_COVERAGE_STRATEGY.md** – **разделение покрытия: User Service vs API Gateway без дублирования ручек**.
+- `docs/USER_SERVICE_COVERAGE.md` – текущее покрытие User Service и бэклог тестов.
 
 ### Установка
 

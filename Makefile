@@ -37,11 +37,10 @@ test-with-docker:
 	docker compose -f docker-compose.test.yml down
 
 test-api-gateway-local:
-	@echo "==> Локальные тесты, фокус на API Gateway"
+	@echo "==> Локальные тесты, фокус на API Gateway (без дублирования ручек User Service)"
 	@$(PYTHON) -m pytest \
-		tests/test_auth_flow.py \
-		tests/test_rate_limiting.py \
-		tests/test_openapi_contracts.py
+		tests/test_api_gateway.py \
+		tests/test_rate_limiting.py
 
 test-user-service-local:
 	@echo "==> Локальные тесты, фокус на User Service"

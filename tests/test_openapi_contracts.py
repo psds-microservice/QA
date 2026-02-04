@@ -10,9 +10,10 @@ from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feat
 
 
 @pytest.mark.smoke
-@allure.tag("contract", "openapi")
+@allure.tag("contract", "openapi", "user-service")
 def test_openapi_contract_exposed_and_valid(settings) -> None:  # type: ignore[no-untyped-def]
-    """Проверка, что API Gateway публикует OpenAPI/Swagger контракт и он имеет базовую структуру."""
+    """Проверка, что сервис (User Service или gateway с прокси) публикует OpenAPI с путями auth.
+    Используется в наборе test-user-service-local. Для контракта самого gateway см. test_api_gateway.py."""
     mark_feature("API Contracts")
     mark_story("Экспонирование OpenAPI/Swagger")
     mark_severity("critical")
