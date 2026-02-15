@@ -329,3 +329,55 @@ class StreamingServiceClient(BaseApiClient):
             f"/sessions/{session_id}/operators",
             expected_status=(200, 404),
         )
+
+
+class OperatorDirectoryServiceClient(BaseApiClient):
+    """Client для operator-directory-service: /health, /ready, /api/v1/operators (CRUD)."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def list_operators(
+        self,
+        region: Optional[str] = None,
+        role: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> ApiResponse:
+        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        if region is not None:
+            params["region"] = region
+        if role is not None:
+            params["role"] = role
+        if status is not None:
+            params["status"] = status
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        path = f"/api/v1/operators?{qs}"
+        return self._request("GET", path, expected_status=200)
+
+    def get_operator(self, operator_id: str) -> ApiResponse:
+        return self._request(
+            "GET",
+            f"/api/v1/operators/{operator_id}",
+            expected_status=(200, 400, 404),
+        )
+
+    def create_operator(self, payload: Dict[str, Any]) -> ApiResponse:
+        return self._request(
+            "POST",
+            "/api/v1/operators",
+            json_body=payload,
+            expected_status=(201, 400, 409),
+        )
+
+    def update_operator(self, operator_id: str, payload: Dict[str, Any]) -> ApiResponse:
+        return self._request(
+            "PUT",
+            f"/api/v1/operators/{operator_id}",
+            json_body=payload,
+            expected_status=(200, 400, 404),
+        )

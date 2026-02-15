@@ -83,6 +83,7 @@ class Settings:
     api_gateway: ServiceConfig
     user_service: ServiceConfig
     streaming_service: ServiceConfig
+    operator_directory_service: ServiceConfig
     websocket: WebSocketConfig
     streaming_ws: WebSocketConfig
     api_paths: ApiPaths
@@ -128,6 +129,10 @@ def get_settings() -> Settings:
     )
     streaming_ws_base = (
         _get_env("STREAMING_WS_BASE_URL", "ws://localhost:8090") or "ws://localhost:8090"
+    )
+    operator_directory_base = (
+        _get_env("OPERATOR_DIRECTORY_SERVICE_BASE_URL", "http://localhost:8095")
+        or "http://localhost:8095"
     )
 
     allure_dir_raw = _get_env("ALLURE_RESULTS_DIR", "allure-results")
@@ -210,8 +215,9 @@ def get_settings() -> Settings:
         env=TestEnv(env),
         api_gateway=ServiceConfig(base_url=api_gateway_base),
         user_service=ServiceConfig(base_url=user_service_base),
-        websocket=WebSocketConfig(base_url=websocket_base),
         streaming_service=ServiceConfig(base_url=streaming_base),
+        operator_directory_service=ServiceConfig(base_url=operator_directory_base),
+        websocket=WebSocketConfig(base_url=websocket_base),
         streaming_ws=WebSocketConfig(base_url=streaming_ws_base),
         api_paths=api_paths,
         allure_results_dir=allure_dir,

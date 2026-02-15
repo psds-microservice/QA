@@ -8,7 +8,12 @@ import allure
 import pytest
 
 from .config import get_settings
-from .http_client import ApiGatewayClient, StreamingServiceClient, UserServiceClient
+from .http_client import (
+    ApiGatewayClient,
+    OperatorDirectoryServiceClient,
+    StreamingServiceClient,
+    UserServiceClient,
+)
 from .logging_utils import configure_root_logger
 
 
@@ -43,6 +48,12 @@ def user_service_client(settings) -> UserServiceClient:
 def streaming_service_client(settings) -> StreamingServiceClient:
     """Client Object для streaming-service (REST)."""
     return StreamingServiceClient(base_url=settings.streaming_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def operator_directory_service_client(settings) -> OperatorDirectoryServiceClient:
+    """Client для operator-directory-service (health, /api/v1/operators CRUD)."""
+    return OperatorDirectoryServiceClient(base_url=settings.operator_directory_service.base_url)
 
 
 @pytest.fixture(scope="session")

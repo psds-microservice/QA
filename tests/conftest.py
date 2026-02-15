@@ -108,17 +108,30 @@ def _only_streaming_tests_collected(session: pytest.Session) -> bool:
     return all("test_streaming" in (getattr(item, "nodeid", "") or "") for item in session.items)
 
 
+def _only_operator_directory_tests_collected(session: pytest.Session) -> bool:
+    """True, если в сессии только тесты из test_operator_directory_*.py."""
+    if not session.items:
+        return False
+    return all(
+        "test_operator_directory" in (getattr(item, "nodeid", "") or "") for item in session.items
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def wait_for_services(settings, request: pytest.FixtureRequest) -> None:
     """
     Проверяет доступность сервисов по настроенным URL (сервисы уже запущены).
-    Если запущены только тесты Streaming Service — проверяется только streaming-service;
-    иначе — API Gateway (для api-gateway/user-service тестов).
+    Если только тесты Streaming / Operator Directory — проверяется только этот сервис;
+    иначе — API Gateway.
     Не поднимает Docker — для локального прогона запустите нужные сервисы вручную
     или используйте: make test-with-docker.
     """
     session = request.session
-    if _only_streaming_tests_collected(session):
+    if _only_operator_directory_tests_collected(session):
+        base_url = settings.operator_directory_service.base_url.rstrip("/")
+        service_name = "Operator Directory Service"
+        hint = "Запустите operator-directory-service вручную или: make test-with-docker"
+    elif _only_streaming_tests_collected(session):
         base_url = settings.streaming_service.base_url.rstrip("/")
         service_name = "Streaming Service"
         hint = "Запустите streaming-service вручную или выполните: make test-with-docker"
