@@ -12,7 +12,14 @@ import allure
 import pytest
 import requests
 
-from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feature, mark_severity, mark_story
+from qa_tests.allure_utils import (
+    allure_step,
+    attach_json,
+    link_jira,
+    mark_feature,
+    mark_severity,
+    mark_story,
+)
 from qa_tests.http_client import ApiGatewayClient
 from qa_tests.metrics import measure_test_case
 
@@ -59,8 +66,13 @@ def test_gateway_openapi_exposes_video_paths(api_gateway_client: ApiGatewayClien
     mark_severity("critical")
     link_jira("PSDS-501")
 
+    # psds api-gateway отдаёт спеку по GET /openapi.json (router.go)
     base = api_gateway_client.base_url.rstrip("/")
-    url_candidates = [f"{base}/openapi.json", f"{base}/swagger/doc.json"]
+    url_candidates = [
+        f"{base}/openapi.json",
+        f"{base}/swagger/openapi.json",
+        f"{base}/swagger/doc.json",
+    ]
     spec = None
     with allure_step("Получение OpenAPI контракта gateway"):
         for url in url_candidates:
@@ -72,11 +84,21 @@ def test_gateway_openapi_exposes_video_paths(api_gateway_client: ApiGatewayClien
                     break
             except Exception:
                 continue
-        assert spec is not None, "Не удалось получить OpenAPI контракт gateway"
+        assert spec is not None, "Не удалось получить OpenAPI контракт gateway по стандартным путям"
 
-    with allure_step("Проверка наличия путей API Gateway (video, status)"):
+    # В api-gateway OpenAPI: пути /api/v1/video/* и /api/v1/clients/*
+    with allure_step("Проверка наличия путей API Gateway (video/clients)"):
         paths = spec.get("paths") or {}
-        # Gateway предоставляет video и status; auth/users — из user-service, в контракте gateway могут отсутствовать
-        gateway_path_examples = ["/api/v1/status", "/api/v1/video/start", "/api/v1/video/frame", "/api/v1/video/stop"]
+        gateway_path_examples = [
+            "/api/v1/status",
+            "/api/v1/video/start",
+            "/api/v1/video/frame",
+            "/api/v1/video/stop",
+            "/api/v1/video/active",
+            "/api/v1/clients/active",
+        ]
         found = [p for p in gateway_path_examples if p in paths]
-        assert len(found) >= 1, f"В контракте gateway ожидались пути вида video/status, найдено: {list(paths.keys())[:15]}"
+        keys_preview = list(paths.keys())[:20]
+        assert (
+            len(found) >= 1
+        ), f"В контракте gateway ожидались пути video или clients, найдено: {keys_preview}"

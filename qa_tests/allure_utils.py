@@ -9,7 +9,9 @@ import allure
 from .config import get_settings
 
 
-def attach_text(name: str, body: str, attachment_type: allure.attachment_type = allure.attachment_type.TEXT) -> None:
+def attach_text(
+    name: str, body: str, attachment_type: allure.attachment_type = allure.attachment_type.TEXT
+) -> None:
     """Простой helper для текстовых вложений в Allure."""
     allure.attach(body, name=name, attachment_type=attachment_type)
 
@@ -58,4 +60,3 @@ def mark_severity(level: Optional[str] = "normal") -> None:
         "trivial": Severity.TRIVIAL,
     }
     allure.dynamic.severity(mapping.get(level or "normal", Severity.NORMAL))
-

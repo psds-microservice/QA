@@ -6,12 +6,11 @@ from faker import Faker
 
 from .models import UserRegistrationRequest
 
-
 faker = Faker()
 
 
 def build_user_registration() -> Dict[str, str]:
-    """Генерация валидных данных для регистрации (формат User Service: username, email, password, role)."""
+    """Валидные данные для регистрации (User Service: username, email, password, role)."""
     user = UserRegistrationRequest(
         email=faker.unique.email(),
         password=faker.password(length=12),
@@ -97,4 +96,3 @@ def build_validate_session_payload(
         "session_external_id": session_external_id or faker.uuid4(),
         "participant_role": participant_role,
     }
-

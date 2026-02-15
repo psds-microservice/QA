@@ -45,7 +45,9 @@ def test_get_user_by_id_self(api_gateway_client: ApiGatewayClient) -> None:
             resp = api_gateway_client.get_user(token, user_id)
 
         assert resp.status_code == 200
-        assert resp.json and (resp.json.get("id") == user_id or resp.json.get("email") == payload["email"])
+        assert resp.json and (
+            resp.json.get("id") == user_id or resp.json.get("email") == payload["email"]
+        )
 
 
 @pytest.mark.negative
@@ -118,7 +120,7 @@ def test_delete_user_authenticated(api_gateway_client: ApiGatewayClient) -> None
 @pytest.mark.negative
 @allure.tag("users", "user-service")
 def test_delete_user_unauthorized(api_gateway_client: ApiGatewayClient) -> None:
-    """DELETE /users/{id} без токена — сервис может вернуть 401, 404 или 200 (зависит от реализации)."""
+    """DELETE /users/{id} без токена — возможны 401, 404 или 200 (зависит от реализации)."""
     mark_feature("User Management")
     mark_story("Удаление пользователя")
     mark_severity("normal")

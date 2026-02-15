@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import time
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
-from typing import Callable, Dict, Iterator
+from typing import AsyncIterator, Callable, Dict, Iterator
 
 from prometheus_client import Counter, Histogram
-
 
 _REQUEST_LATENCY = Histogram(
     "psds_test_request_latency_seconds",
@@ -28,15 +27,35 @@ _TEST_FAILURES = Counter(
 
 
 @contextmanager
-def measure_request(service: str, operation: str, status_getter: Callable[[], str]) -> Iterator[None]:
-    """Контекстный менеджер для измерения времени HTTP/WebSocket запросов."""
+def measure_request(
+    service: str, operation: str, status_getter: Callable[[], str]
+) -> Iterator[None]:
+    """Синхронный контекстный менеджер для измерения времени HTTP/WebSocket запросов."""
     start = time.perf_counter()
     try:
         yield
     finally:
         elapsed = time.perf_counter() - start
         status = status_getter()
-        _REQUEST_LATENCY.labels(service=service, operation=operation, status=status).observe(elapsed)
+        _REQUEST_LATENCY.labels(service=service, operation=operation, status=status).observe(
+            elapsed
+        )
+
+
+@asynccontextmanager
+async def measure_request_async(
+    service: str, operation: str, status_getter: Callable[[], str]
+) -> AsyncIterator[None]:
+    """Асинхронный контекстный менеджер для измерения времени WebSocket-подключений."""
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
+        status = status_getter()
+        _REQUEST_LATENCY.labels(service=service, operation=operation, status=status).observe(
+            elapsed
+        )
 
 
 @contextmanager
@@ -73,4 +92,3 @@ def time_function(func: Callable[..., object]) -> Callable[..., object]:
             _ = TimingInfo(duration_seconds=elapsed)
 
     return wrapper
-

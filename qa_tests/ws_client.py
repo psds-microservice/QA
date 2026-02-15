@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import asyncio
 import json
 from dataclasses import dataclass
 from typing import Any, AsyncIterator, Dict, Optional
 
-import websockets
-from websockets.client import WebSocketClientProtocol
+from websockets.asyncio.client import ClientConnection, connect
+from websockets.exceptions import WebSocketException
 
 from .logging_utils import get_logger
-from .metrics import measure_request
+from .metrics import measure_request_async
 from .retry import RetryConfig, retry_on_exceptions
-
 
 logger = get_logger(__name__)
 
@@ -27,19 +25,22 @@ class WebSocketClient:
     url: str
     token: Optional[str] = None
 
-    _conn: Optional[WebSocketClientProtocol] = None
+    _conn: Optional[ClientConnection] = None
 
-    @retry_on_exceptions(exceptions=[OSError, websockets.WebSocketException], config=RetryConfig())
-    async def connect(self) -> WebSocketClientProtocol:
+    @retry_on_exceptions(exceptions=[OSError, WebSocketException], config=RetryConfig())
+    async def connect(self) -> ClientConnection:
         headers = {}
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
 
-        async def status_getter() -> str:
-            return "connected" if self._conn and self._conn.open else "closed"
-
-        async with measure_request("ws", "CONNECT", lambda: asyncio.get_event_loop().run_until_complete(status_getter())):  # type: ignore[arg-type]
-            self._conn = await websockets.connect(self.url, extra_headers=headers, ping_interval=20)
+        # ws16: additional_headers; extra_headers would be passed to event loop (TypeError)
+        connect_kwargs: Dict[str, Any] = {"ping_interval": 20}
+        if headers:
+            connect_kwargs["additional_headers"] = headers
+        async with measure_request_async(
+            "ws", "CONNECT", lambda: "connected" if self._conn is not None else "closed"
+        ):
+            self._conn = await connect(self.url, **connect_kwargs)
 
         logger.info("WebSocket connected", extra={"url": self.url})
         return self._conn
@@ -57,6 +58,9 @@ class WebSocketClient:
             await self.connect()
         assert self._conn is not None
         raw = await self._conn.recv()
+        # websockets 16+ recv() may return bytes; normalize to str for WebSocketMessage.raw
+        if isinstance(raw, bytes):
+            raw = raw.decode("utf-8")
         try:
             payload = json.loads(raw)
         except ValueError:
@@ -69,7 +73,6 @@ class WebSocketClient:
             yield await self.receive()
 
     async def close(self) -> None:
-        if self._conn and self._conn.open:
+        if self._conn:
             await self._conn.close()
             logger.info("WebSocket closed", extra={"url": self.url})
-

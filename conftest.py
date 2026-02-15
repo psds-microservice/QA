@@ -3,4 +3,3 @@
 pytest_plugins = [
     "qa_tests.fixtures",
 ]
-

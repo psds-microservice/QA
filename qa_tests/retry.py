@@ -6,7 +6,6 @@ from typing import Callable, Iterable, Tuple, Type, TypeVar
 
 from .logging_utils import get_logger
 
-
 T = TypeVar("T")
 
 logger = get_logger(__name__)
@@ -35,7 +34,7 @@ def retry_on_exceptions(
             for attempt in range(1, cfg.attempts + 1):
                 try:
                     return func(*args, **kwargs)
-                except exceptions_tuple as exc:  # type: ignore[misc]
+                except exceptions_tuple as exc:
                     last_exc = exc
                     logger.warning(
                         "Retryable error in %s: %s (attempt %s/%s)",
@@ -55,4 +54,3 @@ def retry_on_exceptions(
         return wrapper
 
     return decorator
-

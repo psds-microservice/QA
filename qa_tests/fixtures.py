@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import AsyncIterator, Iterator
+from typing import Iterator
 
 import allure
 import pytest
 
 from .config import get_settings
-from .http_client import ApiGatewayClient, UserServiceClient
+from .http_client import ApiGatewayClient, StreamingServiceClient, UserServiceClient
 from .logging_utils import configure_root_logger
 
 
@@ -40,6 +40,12 @@ def user_service_client(settings) -> UserServiceClient:
 
 
 @pytest.fixture(scope="session")
+def streaming_service_client(settings) -> StreamingServiceClient:
+    """Client Object для streaming-service (REST)."""
+    return StreamingServiceClient(base_url=settings.streaming_service.base_url)
+
+
+@pytest.fixture(scope="session")
 def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
     """Отдельный event loop для pytest-asyncio."""
     loop = asyncio.new_event_loop()
@@ -57,7 +63,7 @@ def video_artifacts_tmpdir(tmp_path: Path) -> Path:
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_runtest_makereport(item, call):  # type: ignore[no-untyped-def]
+def pytest_runtest_makereport(item, call):
     # Позволяет узнавать статус теста внутри фикстур
     outcome = yield
     rep = outcome.get_result()
@@ -65,7 +71,7 @@ def pytest_runtest_makereport(item, call):  # type: ignore[no-untyped-def]
 
 
 @pytest.fixture(autouse=True)
-def attach_artifacts_on_failure(request, video_artifacts_tmpdir: Path) -> Iterator[None]:  # type: ignore[no-untyped-def]
+def attach_artifacts_on_failure(request, video_artifacts_tmpdir: Path) -> Iterator[None]:
     """Автоматическое прикрепление артефактов при падении теста.
 
     Здесь можно интегрировать:
@@ -91,4 +97,3 @@ def attach_artifacts_on_failure(request, video_artifacts_tmpdir: Path) -> Iterat
                     name="failure-placeholder",
                     attachment_type=allure.attachment_type.TEXT,
                 )
-

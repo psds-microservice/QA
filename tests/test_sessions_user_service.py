@@ -8,7 +8,14 @@ import allure
 import pytest
 
 from qa_tests import data_factory
-from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feature, mark_severity, mark_story
+from qa_tests.allure_utils import (
+    allure_step,
+    attach_json,
+    link_jira,
+    mark_feature,
+    mark_severity,
+    mark_story,
+)
 from qa_tests.http_client import ApiGatewayClient
 from qa_tests.metrics import measure_test_case
 
@@ -45,7 +52,9 @@ def test_create_session(api_gateway_client: ApiGatewayClient) -> None:
         )
         with allure_step("Создание сессии"):
             resp = api_gateway_client.create_session(token, user_id, session_payload)
-            attach_json("session_response", json.dumps(resp.json or {}, ensure_ascii=False, indent=2))
+            attach_json(
+                "session_response", json.dumps(resp.json or {}, ensure_ascii=False, indent=2)
+            )
         assert resp.status_code in (200, 201)
         assert resp.json
 

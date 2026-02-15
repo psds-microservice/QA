@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Dict, Optional, Sequence, TypeVar, Union
 
 import requests
 from requests import Response
@@ -10,7 +10,6 @@ from .config import ApiPaths
 from .logging_utils import get_logger
 from .metrics import measure_request
 from .retry import RetryConfig, retry_on_exceptions
-
 
 T = TypeVar("T")
 
@@ -51,7 +50,9 @@ class BaseApiClient:
             resp = requests.request(method, url, json=json_body, headers=merged_headers, timeout=10)
 
         if expected_status is not None:
-            allowed = (expected_status,) if isinstance(expected_status, int) else tuple(expected_status)
+            allowed = (
+                (expected_status,) if isinstance(expected_status, int) else tuple(expected_status)
+            )
             if resp.status_code not in allowed:
                 logger.error(
                     "Unexpected status code",
@@ -92,7 +93,7 @@ class ApiGatewayClient(BaseApiClient):
         if self._paths is None:
             raise ValueError("ApiGatewayClient requires api_paths")
         path = getattr(self._paths, key)
-        return path.format(**kwargs) if kwargs else path
+        return str(path.format(**kwargs)) if kwargs else path
 
     def register_user(self, payload: Dict[str, Any]) -> ApiResponse:
         # User Service возвращает 200, классический REST — 201
@@ -101,9 +102,7 @@ class ApiGatewayClient(BaseApiClient):
         )
 
     def authenticate(self, payload: Dict[str, Any]) -> ApiResponse:
-        return self._request(
-            "POST", self._p("auth_login"), json_body=payload, expected_status=200
-        )
+        return self._request("POST", self._p("auth_login"), json_body=payload, expected_status=200)
 
     def auth_refresh(self, payload: Dict[str, Any]) -> ApiResponse:
         return self._request(
@@ -144,9 +143,7 @@ class ApiGatewayClient(BaseApiClient):
             expected_status=200,
         )
 
-    def update_user_by_id(
-        self, token: str, user_id: str, payload: Dict[str, Any]
-    ) -> ApiResponse:
+    def update_user_by_id(self, token: str, user_id: str, payload: Dict[str, Any]) -> ApiResponse:
         return self._request(
             "PUT",
             self._p("users_by_id", id=user_id),
@@ -202,9 +199,7 @@ class ApiGatewayClient(BaseApiClient):
             expected_status=200,
         )
 
-    def create_session(
-        self, token: str, user_id: str, payload: Dict[str, Any]
-    ) -> ApiResponse:
+    def create_session(self, token: str, user_id: str, payload: Dict[str, Any]) -> ApiResponse:
         # Сервис может вернуть 200 или 201
         return self._request(
             "POST",
@@ -249,9 +244,7 @@ class ApiGatewayClient(BaseApiClient):
     def operators_stats(self) -> ApiResponse:
         return self._request("GET", self._p("operators_stats"), expected_status=200)
 
-    def operators_verify(
-        self, token: str, operator_id: str, status: str
-    ) -> ApiResponse:
+    def operators_verify(self, token: str, operator_id: str, status: str) -> ApiResponse:
         return self._request(
             "POST",
             self._p("operators_verify", id=operator_id),
@@ -309,3 +302,30 @@ class UserServiceClient(BaseApiClient):
     def ready(self) -> ApiResponse:
         return self.get("/ready")
 
+
+class StreamingServiceClient(BaseApiClient):
+    """Client Object для микросервиса streaming-service (REST часть).
+
+    Используется для создания/завершения сессий и чтения операторов.
+    """
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def create_session(self, client_id: str) -> ApiResponse:
+        payload: Dict[str, Any] = {"client_id": client_id}
+        # 201 — как указано в README streaming-service
+        return self._request("POST", "/sessions", json_body=payload, expected_status=201)
+
+    def delete_session(self, session_id: str) -> ApiResponse:
+        return self._request("DELETE", f"/sessions/{session_id}", expected_status=(204, 404))
+
+    def get_session_operators(self, session_id: str) -> ApiResponse:
+        return self._request(
+            "GET",
+            f"/sessions/{session_id}/operators",
+            expected_status=(200, 404),
+        )

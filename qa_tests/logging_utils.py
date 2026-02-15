@@ -13,7 +13,7 @@ class JsonFormatter(logging.Formatter):
     Подходит для сбора логов в централизованные системы и удобного анализа.
     """
 
-    def format(self, record: logging.LogRecord) -> str:  # type: ignore[override]
+    def format(self, record: logging.LogRecord) -> str:
         payload: Dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -22,7 +22,7 @@ class JsonFormatter(logging.Formatter):
         }
 
         if record.exc_info:
-            payload["exc_info"] = self.formatException(record.exc_info)  # type: ignore[arg-type]
+            payload["exc_info"] = self.formatException(record.exc_info)
 
         for key, value in record.__dict__.items():
             if key.startswith("_"):
@@ -55,4 +55,3 @@ def configure_root_logger(level: int = logging.INFO) -> None:
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Возвращает именованный логгер."""
     return logging.getLogger(name)
-

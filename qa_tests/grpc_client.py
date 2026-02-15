@@ -5,13 +5,12 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 import grpc
 from grpc import Channel
 
 from .logging_utils import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -63,4 +62,3 @@ class GrpcClient:
         if self.channel:
             self.channel.close()
             logger.info("gRPC channel closed", extra={"address": self.config.address})
-

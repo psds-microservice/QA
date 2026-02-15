@@ -6,7 +6,14 @@ import allure
 import pytest
 
 from qa_tests import data_factory
-from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feature, mark_severity, mark_story
+from qa_tests.allure_utils import (
+    allure_step,
+    attach_json,
+    link_jira,
+    mark_feature,
+    mark_severity,
+    mark_story,
+)
 from qa_tests.http_client import ApiGatewayClient
 from qa_tests.metrics import measure_test_case
 
@@ -164,4 +171,3 @@ def test_register_duplicate_email(api_gateway_client: ApiGatewayClient) -> None:
         }
         resp = api_gateway_client.register_user(second_payload)
         assert resp.status_code in (400, 409)
-

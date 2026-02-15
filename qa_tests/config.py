@@ -82,7 +82,9 @@ class Settings:
     env: TestEnv
     api_gateway: ServiceConfig
     user_service: ServiceConfig
+    streaming_service: ServiceConfig
     websocket: WebSocketConfig
+    streaming_ws: WebSocketConfig
     api_paths: ApiPaths
     allure_results_dir: Path
     jira: Optional[JiraConfig]
@@ -116,12 +118,20 @@ def get_settings() -> Settings:
     else:
         env = env_raw  # type: ignore[assignment]
 
-    api_gateway_base = _get_env("API_GATEWAY_BASE_URL", "http://localhost:8080")
-    user_service_base = _get_env("USER_SERVICE_BASE_URL", api_gateway_base)
-    websocket_base = _get_env("WEBSOCKET_BASE_URL", "ws://localhost:8080")
+    api_gateway_base = (
+        _get_env("API_GATEWAY_BASE_URL", "http://localhost:8080") or "http://localhost:8080"
+    )
+    user_service_base = _get_env("USER_SERVICE_BASE_URL", api_gateway_base) or api_gateway_base
+    websocket_base = _get_env("WEBSOCKET_BASE_URL", "ws://localhost:8080") or "ws://localhost:8080"
+    streaming_base = (
+        _get_env("STREAMING_SERVICE_BASE_URL", "http://localhost:8090") or "http://localhost:8090"
+    )
+    streaming_ws_base = (
+        _get_env("STREAMING_WS_BASE_URL", "ws://localhost:8090") or "ws://localhost:8090"
+    )
 
     allure_dir_raw = _get_env("ALLURE_RESULTS_DIR", "allure-results")
-    allure_dir = Path(allure_dir_raw).resolve()
+    allure_dir = Path(allure_dir_raw or "allure-results").resolve()
 
     jira_base = _get_env("JIRA_BASE_URL")
     jira_project_key = _get_env("JIRA_PROJECT_KEY")
@@ -163,38 +173,37 @@ def get_settings() -> Settings:
 
     rate_limit_user = _get_env("RATE_LIMIT_TEST_USER")
 
+    def _path(key: str, default: str) -> str:
+        return _get_env(key, default) or default
+
     api_paths = ApiPaths(
-        users_register=_get_env("API_USERS_REGISTER_PATH", "/api/v1/auth/register"),
-        auth_login=_get_env("API_AUTH_LOGIN_PATH", "/api/v1/auth/login"),
-        auth_refresh=_get_env("API_AUTH_REFRESH_PATH", "/api/v1/auth/refresh"),
-        auth_logout=_get_env("API_AUTH_LOGOUT_PATH", "/api/v1/auth/logout"),
-        users_me=_get_env("API_USERS_ME_PATH", "/api/v1/users/me"),
-        users_by_id=_get_env("API_USERS_BY_ID_PATH", "/api/v1/users/{id}"),
-        users_presence=_get_env("API_USERS_PRESENCE_PATH", "/api/v1/users/{user_id}/presence"),
-        users_sessions=_get_env("API_USERS_SESSIONS_PATH", "/api/v1/users/{id}/sessions"),
-        users_active_sessions=_get_env(
+        users_register=_path("API_USERS_REGISTER_PATH", "/api/v1/auth/register"),
+        auth_login=_path("API_AUTH_LOGIN_PATH", "/api/v1/auth/login"),
+        auth_refresh=_path("API_AUTH_REFRESH_PATH", "/api/v1/auth/refresh"),
+        auth_logout=_path("API_AUTH_LOGOUT_PATH", "/api/v1/auth/logout"),
+        users_me=_path("API_USERS_ME_PATH", "/api/v1/users/me"),
+        users_by_id=_path("API_USERS_BY_ID_PATH", "/api/v1/users/{id}"),
+        users_presence=_path("API_USERS_PRESENCE_PATH", "/api/v1/users/{user_id}/presence"),
+        users_sessions=_path("API_USERS_SESSIONS_PATH", "/api/v1/users/{id}/sessions"),
+        users_active_sessions=_path(
             "API_USERS_ACTIVE_SESSIONS_PATH", "/api/v1/users/{id}/active-sessions"
         ),
-        sessions_validate=_get_env("API_SESSIONS_VALIDATE_PATH", "/api/v1/sessions/validate"),
-        operators_available=_get_env(
-            "API_OPERATORS_AVAILABLE_PATH", "/api/v1/operators/available"
-        ),
-        operators_availability=_get_env(
+        sessions_validate=_path("API_SESSIONS_VALIDATE_PATH", "/api/v1/sessions/validate"),
+        operators_available=_path("API_OPERATORS_AVAILABLE_PATH", "/api/v1/operators/available"),
+        operators_availability=_path(
             "API_OPERATORS_AVAILABILITY_PATH", "/api/v1/operators/availability"
         ),
-        operators_stats=_get_env("API_OPERATORS_STATS_PATH", "/api/v1/operators/stats"),
-        operators_verify=_get_env(
-            "API_OPERATORS_VERIFY_PATH", "/api/v1/operators/{id}/verify"
-        ),
-        operators_availability_by_id=_get_env(
+        operators_stats=_path("API_OPERATORS_STATS_PATH", "/api/v1/operators/stats"),
+        operators_verify=_path("API_OPERATORS_VERIFY_PATH", "/api/v1/operators/{id}/verify"),
+        operators_availability_by_id=_path(
             "API_OPERATORS_AVAILABILITY_BY_ID_PATH",
             "/api/v1/operators/{user_id}/availability",
         ),
-        video_sessions=_get_env("API_VIDEO_SESSIONS_PATH", "/v1/video/sessions"),
-        video_sessions_join=_get_env(
+        video_sessions=_path("API_VIDEO_SESSIONS_PATH", "/v1/video/sessions"),
+        video_sessions_join=_path(
             "API_VIDEO_SESSIONS_JOIN_PATH", "/v1/video/sessions/{session_id}/join"
         ),
-        limits_rate_limited=_get_env("API_LIMITS_RATE_LIMITED_PATH", "/v1/limits/rate-limited"),
+        limits_rate_limited=_path("API_LIMITS_RATE_LIMITED_PATH", "/v1/limits/rate-limited"),
     )
 
     return Settings(
@@ -202,6 +211,8 @@ def get_settings() -> Settings:
         api_gateway=ServiceConfig(base_url=api_gateway_base),
         user_service=ServiceConfig(base_url=user_service_base),
         websocket=WebSocketConfig(base_url=websocket_base),
+        streaming_service=ServiceConfig(base_url=streaming_base),
+        streaming_ws=WebSocketConfig(base_url=streaming_ws_base),
         api_paths=api_paths,
         allure_results_dir=allure_dir,
         jira=jira,
@@ -210,4 +221,3 @@ def get_settings() -> Settings:
         db=db,
         rate_limit_test_user=rate_limit_user,
     )
-

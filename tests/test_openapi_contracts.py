@@ -6,14 +6,22 @@ import allure
 import pytest
 import requests
 
-from qa_tests.allure_utils import allure_step, attach_json, link_jira, mark_feature, mark_severity, mark_story
+from qa_tests.allure_utils import (
+    allure_step,
+    attach_json,
+    link_jira,
+    mark_feature,
+    mark_severity,
+    mark_story,
+)
 
 
 @pytest.mark.smoke
 @allure.tag("contract", "openapi", "user-service")
-def test_openapi_contract_exposed_and_valid(settings) -> None:  # type: ignore[no-untyped-def]
-    """Проверка, что сервис (User Service или gateway с прокси) публикует OpenAPI с путями auth.
-    Используется в наборе test-user-service-local. Для контракта самого gateway см. test_api_gateway.py."""
+def test_openapi_contract_exposed_and_valid(settings) -> None:
+    """Сервис (User Service или gateway) публикует OpenAPI с путями auth.
+    Набор test-user-service-local. Контракт gateway — test_api_gateway.py.
+    """
     mark_feature("API Contracts")
     mark_story("Экспонирование OpenAPI/Swagger")
     mark_severity("critical")
@@ -46,4 +54,3 @@ def test_openapi_contract_exposed_and_valid(settings) -> None:  # type: ignore[n
         expected_paths = ["/api/v1/auth/register", "/api/v1/auth/login"]
         missing = [p for p in expected_paths if p not in spec["paths"]]
         assert not missing, f"В OpenAPI отсутствуют ожидаемые пути: {missing}"
-

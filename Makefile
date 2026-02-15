@@ -2,7 +2,7 @@ PYTHON ?= python
 
 VENV_DIR := .venv
 
-.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local
+.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local test-streaming-service-local
 
 help:
 	@echo "Доступные команды:"
@@ -11,6 +11,7 @@ help:
 	@echo "  make test-with-docker        - поднять docker-compose.test.yml и запустить все тесты"
 	@echo "  make test-api-gateway-local  - запустить только тесты для API Gateway"
 	@echo "  make test-user-service-local - запустить только тесты для User Service"
+	@echo "  make test-streaming-service-local - запустить только тесты для Streaming Service"
 
 bootstrap:
 	@echo "==> Создание виртуального окружения (если нет)"
@@ -38,13 +39,13 @@ test-with-docker:
 
 test-api-gateway-local:
 	@echo "==> Локальные тесты, фокус на API Gateway (без дублирования ручек User Service)"
-	@$(PYTHON) -m pytest \
+	@$(PYTHON) -m pytest -p no:xdist \
 		tests/test_api_gateway.py \
 		tests/test_rate_limiting.py
 
 test-user-service-local:
 	@echo "==> Локальные тесты, фокус на User Service"
-	@$(PYTHON) -m pytest \
+	@$(PYTHON) -m pytest -p no:xdist \
 		tests/test_health_user_service.py \
 		tests/test_auth_flow.py \
 		tests/test_validation_negative.py \
@@ -53,3 +54,9 @@ test-user-service-local:
 		tests/test_sessions_user_service.py \
 		tests/test_operators_user_service.py
 
+test-streaming-service-local:
+	@echo "==> Local tests, focus on Streaming Service"
+	@$(PYTHON) -m pytest -p no:xdist \
+		tests/test_streaming_health.py \
+		tests/test_streaming_sessions_rest.py \
+		tests/test_streaming_websocket.py

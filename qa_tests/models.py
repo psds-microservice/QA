@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -24,6 +24,7 @@ class AuthRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     """Ответ с токенами (поддержка snake_case и camelCase от User Service)."""
+
     model_config = ConfigDict(populate_by_name=True)
 
     access_token: str = Field(alias="accessToken")
@@ -55,5 +56,4 @@ class ChatMessage(BaseModel):
 class ErrorResponse(BaseModel):
     code: str
     message: str
-    details: Optional[dict]
-
+    details: Optional[Dict[str, Any]]
