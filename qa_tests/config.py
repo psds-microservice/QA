@@ -88,6 +88,7 @@ class Settings:
     notification_service: ServiceConfig
     notification_ws: WebSocketConfig
     search_service: ServiceConfig
+    ticket_service: ServiceConfig
     websocket: WebSocketConfig
     streaming_ws: WebSocketConfig
     api_paths: ApiPaths
@@ -151,6 +152,9 @@ def get_settings() -> Settings:
     )
     search_base = (
         _get_env("SEARCH_SERVICE_BASE_URL", "http://localhost:8096") or "http://localhost:8096"
+    )
+    ticket_base = (
+        _get_env("TICKET_SERVICE_BASE_URL", "http://localhost:8097") or "http://localhost:8097"
     )
 
     allure_dir_raw = _get_env("ALLURE_RESULTS_DIR", "allure-results")
@@ -239,6 +243,7 @@ def get_settings() -> Settings:
         notification_service=ServiceConfig(base_url=notification_base),
         notification_ws=WebSocketConfig(base_url=notification_ws_base),
         search_service=ServiceConfig(base_url=search_base),
+        ticket_service=ServiceConfig(base_url=ticket_base),
         websocket=WebSocketConfig(base_url=websocket_base),
         streaming_ws=WebSocketConfig(base_url=streaming_ws_base),
         api_paths=api_paths,

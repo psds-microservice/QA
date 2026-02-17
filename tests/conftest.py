@@ -140,17 +140,28 @@ def _only_search_tests_collected(session: pytest.Session) -> bool:
     return all("test_search" in (getattr(item, "nodeid", "") or "") for item in session.items)
 
 
+def _only_ticket_tests_collected(session: pytest.Session) -> bool:
+    """True, если в сессии только тесты из test_ticket_*.py."""
+    if not session.items:
+        return False
+    return all("test_ticket" in (getattr(item, "nodeid", "") or "") for item in session.items)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def wait_for_services(settings, request: pytest.FixtureRequest) -> None:
     """
     Проверяет доступность сервисов по настроенным URL (сервисы уже запущены).
-    Если только тесты Streaming / Operator Directory / Operator Pool / Notification / Search —
-    проверяется этот сервис; иначе — API Gateway.
+    Если только тесты Streaming / Operator Directory / Operator Pool /
+    Notification / Search / Ticket — проверяется этот сервис; иначе — API Gateway.
     Не поднимает Docker — для локального прогона запустите нужные сервисы вручную
     или используйте: make test-with-docker.
     """
     session = request.session
-    if _only_search_tests_collected(session):
+    if _only_ticket_tests_collected(session):
+        base_url = settings.ticket_service.base_url.rstrip("/")
+        service_name = "Ticket Service"
+        hint = "Запустите ticket-service вручную или: make test-with-docker"
+    elif _only_search_tests_collected(session):
         base_url = settings.search_service.base_url.rstrip("/")
         service_name = "Search Service"
         hint = "Запустите search-service вручную или: make test-with-docker"

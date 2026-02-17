@@ -498,3 +498,54 @@ class SearchServiceClient(BaseApiClient):
             json_body=payload,
             expected_status=(200, 400, 500),
         )
+
+
+class TicketServiceClient(BaseApiClient):
+    """Client для ticket-service: /health, /ready, /api/v1/tickets (CRUD)."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def create_ticket(self, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /api/v1/tickets — возвращает 201 Created."""
+        return self._request(
+            "POST",
+            "/api/v1/tickets",
+            json_body=payload,
+            expected_status=(201, 400, 500),
+        )
+
+    def get_ticket(self, ticket_id: str) -> ApiResponse:
+        """GET /api/v1/tickets/:id — id должен быть числом (uint64)."""
+        return self._request(
+            "GET",
+            f"/api/v1/tickets/{ticket_id}",
+            expected_status=(200, 400, 404, 500),
+        )
+
+    def list_tickets(
+        self,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> ApiResponse:
+        """GET /api/v1/tickets?limit=...&offset=..."""
+        params: Dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if offset is not None:
+            params["offset"] = offset
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        path = f"/api/v1/tickets?{qs}" if qs else "/api/v1/tickets"
+        return self._request("GET", path, expected_status=(200, 500))
+
+    def update_ticket(self, ticket_id: str, payload: Dict[str, Any]) -> ApiResponse:
+        """PUT /api/v1/tickets/:id — id должен быть числом (uint64)."""
+        return self._request(
+            "PUT",
+            f"/api/v1/tickets/{ticket_id}",
+            json_body=payload,
+            expected_status=(200, 400, 404, 500),
+        )

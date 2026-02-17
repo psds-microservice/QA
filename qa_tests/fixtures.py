@@ -15,6 +15,7 @@ from .http_client import (
     OperatorPoolServiceClient,
     SearchServiceClient,
     StreamingServiceClient,
+    TicketServiceClient,
     UserServiceClient,
 )
 from .logging_utils import configure_root_logger
@@ -75,6 +76,12 @@ def notification_service_client(settings) -> NotificationServiceClient:
 def search_service_client(settings) -> SearchServiceClient:
     """Client для search-service (health, /search, /search/index/*)."""
     return SearchServiceClient(base_url=settings.search_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def ticket_service_client(settings) -> TicketServiceClient:
+    """Client для ticket-service (health, /api/v1/tickets CRUD)."""
+    return TicketServiceClient(base_url=settings.ticket_service.base_url)
 
 
 @pytest.fixture(scope="session")
