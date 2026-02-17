@@ -63,16 +63,17 @@ def test_create_and_get_operator(
     create = operator_directory_service_client.create_operator(payload)
     assert create.status_code == 201
     assert create.json is not None
-    assert create.json.get("user_id") == user_id
+    # gRPC Gateway отдаёт JSON в camelCase (userId, displayName, role)
+    op_id = create.json.get("userId") or create.json.get("user_id")
+    assert op_id == user_id
     assert create.json.get("role") == "operator"
 
     # Get by id (service uses user_id as id in response)
-    op_id = create.json.get("user_id")
     if op_id:
         get_resp = operator_directory_service_client.get_operator(op_id)
         assert get_resp.status_code == 200
         assert get_resp.json is not None
-        assert get_resp.json.get("user_id") == user_id
+        assert (get_resp.json.get("userId") or get_resp.json.get("user_id")) == user_id
 
 
 @pytest.mark.negative
@@ -107,18 +108,18 @@ def test_update_operator(
         {"user_id": user_id, "role": "operator", "display_name": "before"}
     )
     assert create.status_code == 201 and create.json is not None
-    op_id = create.json.get("user_id")
+    op_id = create.json.get("userId") or create.json.get("user_id")
     assert op_id is not None
 
     update = operator_directory_service_client.update_operator(op_id, {"display_name": "after-e2e"})
     assert update.status_code == 200
     assert update.json is not None
-    assert update.json.get("display_name") == "after-e2e"
+    assert (update.json.get("displayName") or update.json.get("display_name")) == "after-e2e"
 
     get_resp = operator_directory_service_client.get_operator(op_id)
     assert get_resp.status_code == 200
     assert get_resp.json is not None
-    assert get_resp.json.get("display_name") == "after-e2e"
+    assert (get_resp.json.get("displayName") or get_resp.json.get("display_name")) == "after-e2e"
 
 
 @pytest.mark.negative
