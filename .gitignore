@@ -37,6 +37,5 @@ logs/
 *.log
 
 .env
-.env.*
 
 mitmproxy/

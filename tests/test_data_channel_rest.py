@@ -19,8 +19,9 @@ def test_get_history_empty(
     resp = data_channel_service_client.get_history(session_id)
     assert resp.status_code == 200
     assert resp.json is not None
-    # Handler возвращает список напрямую, не объект
-    assert isinstance(resp.json, list)
+    # gRPC Gateway возвращает объект { "messages": [...] }
+    assert "messages" in resp.json
+    assert isinstance(resp.json["messages"], list)
 
 
 @pytest.mark.smoke
@@ -32,7 +33,8 @@ def test_get_history_with_limit(
     resp = data_channel_service_client.get_history(session_id, limit=10)
     assert resp.status_code == 200
     assert resp.json is not None
-    assert isinstance(resp.json, list)
+    assert "messages" in resp.json
+    assert isinstance(resp.json["messages"], list)
 
 
 @pytest.mark.negative
