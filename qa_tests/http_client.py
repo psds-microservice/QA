@@ -615,3 +615,13 @@ class DataChannelServiceClient(BaseApiClient):
             payload = None
 
         return ApiResponse(status_code=resp.status_code, json=payload, raw=resp)
+
+
+class SessionManagerServiceClient(BaseApiClient):
+    """Client для session-manager-service: /health, /ready."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")

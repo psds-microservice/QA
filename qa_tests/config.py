@@ -91,6 +91,7 @@ class Settings:
     ticket_service: ServiceConfig
     data_channel_service: ServiceConfig
     data_channel_ws: WebSocketConfig
+    session_manager_service: ServiceConfig
     websocket: WebSocketConfig
     streaming_ws: WebSocketConfig
     api_paths: ApiPaths
@@ -164,6 +165,10 @@ def get_settings() -> Settings:
     )
     data_channel_ws_base = (
         _get_env("DATA_CHANNEL_WS_BASE_URL", "ws://localhost:8093") or "ws://localhost:8093"
+    )
+    session_manager_base = (
+        _get_env("SESSION_MANAGER_SERVICE_BASE_URL", "http://localhost:8091")
+        or "http://localhost:8091"
     )
 
     allure_dir_raw = _get_env("ALLURE_RESULTS_DIR", "allure-results")
@@ -255,6 +260,7 @@ def get_settings() -> Settings:
         ticket_service=ServiceConfig(base_url=ticket_base),
         data_channel_service=ServiceConfig(base_url=data_channel_base),
         data_channel_ws=WebSocketConfig(base_url=data_channel_ws_base),
+        session_manager_service=ServiceConfig(base_url=session_manager_base),
         websocket=WebSocketConfig(base_url=websocket_base),
         streaming_ws=WebSocketConfig(base_url=streaming_ws_base),
         api_paths=api_paths,

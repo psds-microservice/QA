@@ -15,6 +15,7 @@ from .http_client import (
     OperatorDirectoryServiceClient,
     OperatorPoolServiceClient,
     SearchServiceClient,
+    SessionManagerServiceClient,
     StreamingServiceClient,
     TicketServiceClient,
     UserServiceClient,
@@ -89,6 +90,12 @@ def ticket_service_client(settings) -> TicketServiceClient:
 def data_channel_service_client(settings) -> DataChannelServiceClient:
     """Client для data-channel-service (health, /data/:session_id/history, /data/file)."""
     return DataChannelServiceClient(base_url=settings.data_channel_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def session_manager_service_client(settings) -> SessionManagerServiceClient:
+    """Client для session-manager-service (health, /ready)."""
+    return SessionManagerServiceClient(base_url=settings.session_manager_service.base_url)
 
 
 @pytest.fixture(scope="session")

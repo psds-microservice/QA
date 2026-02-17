@@ -154,18 +154,31 @@ def _only_data_channel_tests_collected(session: pytest.Session) -> bool:
     return all("test_data_channel" in (getattr(item, "nodeid", "") or "") for item in session.items)
 
 
+def _only_session_manager_tests_collected(session: pytest.Session) -> bool:
+    """True, если в сессии только тесты из test_session_manager_*.py."""
+    if not session.items:
+        return False
+    return all(
+        "test_session_manager" in (getattr(item, "nodeid", "") or "") for item in session.items
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def wait_for_services(settings, request: pytest.FixtureRequest) -> None:
     """
     Проверяет доступность сервисов по настроенным URL (сервисы уже запущены).
     Если только тесты Streaming / Operator Directory / Operator Pool /
-    Notification / Search / Ticket / Data Channel — проверяется этот сервис;
-    иначе — API Gateway.
+    Notification / Search / Ticket / Data Channel / Session Manager —
+    проверяется этот сервис; иначе — API Gateway.
     Не поднимает Docker — для локального прогона запустите нужные сервисы вручную
     или используйте: make test-with-docker.
     """
     session = request.session
-    if _only_data_channel_tests_collected(session):
+    if _only_session_manager_tests_collected(session):
+        base_url = settings.session_manager_service.base_url.rstrip("/")
+        service_name = "Session Manager Service"
+        hint = "Запустите session-manager-service вручную или: make test-with-docker"
+    elif _only_data_channel_tests_collected(session):
         base_url = settings.data_channel_service.base_url.rstrip("/")
         service_name = "Data Channel Service"
         hint = "Запустите data-channel-service вручную или: make test-with-docker"

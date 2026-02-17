@@ -2,7 +2,7 @@ PYTHON ?= python
 
 VENV_DIR := .venv
 
-.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local test-streaming-service-local test-operator-directory-service-local test-operator-pool-service-local test-notification-service-local test-search-service-local test-ticket-service-local test-data-channel-service-local
+.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local test-streaming-service-local test-operator-directory-service-local test-operator-pool-service-local test-notification-service-local test-search-service-local test-ticket-service-local test-data-channel-service-local test-session-manager-service-local
 
 help:
 	@echo "Доступные команды:"
@@ -18,6 +18,7 @@ help:
 	@echo "  make test-search-service-local - только тесты Search Service"
 	@echo "  make test-ticket-service-local - только тесты Ticket Service"
 	@echo "  make test-data-channel-service-local - только тесты Data Channel Service"
+	@echo "  make test-session-manager-service-local - только тесты Session Manager Service"
 
 bootstrap:
 	@echo "==> Создание виртуального окружения (если нет)"
@@ -103,3 +104,9 @@ test-data-channel-service-local:
 	@$(PYTHON) -m pytest -p no:xdist \
 		tests/test_data_channel_health.py \
 		tests/test_data_channel_rest.py
+
+test-session-manager-service-local:
+	@echo "==> Local tests, focus on Session Manager Service"
+	@$(PYTHON) -m pytest -p no:xdist \
+		tests/test_session_manager_health.py \
+		tests/test_session_manager_rest.py
