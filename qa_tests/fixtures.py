@@ -13,6 +13,7 @@ from .http_client import (
     NotificationServiceClient,
     OperatorDirectoryServiceClient,
     OperatorPoolServiceClient,
+    SearchServiceClient,
     StreamingServiceClient,
     UserServiceClient,
 )
@@ -68,6 +69,12 @@ def operator_pool_service_client(settings) -> OperatorPoolServiceClient:
 def notification_service_client(settings) -> NotificationServiceClient:
     """Client для notification-service (health, /notify/session/:id)."""
     return NotificationServiceClient(base_url=settings.notification_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def search_service_client(settings) -> SearchServiceClient:
+    """Client для search-service (health, /search, /search/index/*)."""
+    return SearchServiceClient(base_url=settings.search_service.base_url)
 
 
 @pytest.fixture(scope="session")

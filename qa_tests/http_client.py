@@ -447,3 +447,54 @@ class NotificationServiceClient(BaseApiClient):
             json_body=payload,
             expected_status=(200, 400),
         )
+
+
+class SearchServiceClient(BaseApiClient):
+    """Client для search-service: /health, /ready, GET /search, POST /search/index/*."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def search(
+        self,
+        query: str,
+        type_filter: Optional[str] = None,
+        limit: int = 20,
+    ) -> ApiResponse:
+        """GET /search?q=...&type=tickets|sessions|operators|all&limit=20."""
+        params: Dict[str, Any] = {"q": query, "limit": limit}
+        if type_filter is not None:
+            params["type"] = type_filter
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        path = f"/search?{qs}"
+        return self._request("GET", path, expected_status=(200, 500))
+
+    def index_ticket(self, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /search/index/ticket."""
+        return self._request(
+            "POST",
+            "/search/index/ticket",
+            json_body=payload,
+            expected_status=(200, 400, 500),
+        )
+
+    def index_session(self, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /search/index/session."""
+        return self._request(
+            "POST",
+            "/search/index/session",
+            json_body=payload,
+            expected_status=(200, 400, 500),
+        )
+
+    def index_operator(self, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /search/index/operator."""
+        return self._request(
+            "POST",
+            "/search/index/operator",
+            json_body=payload,
+            expected_status=(200, 400, 500),
+        )
