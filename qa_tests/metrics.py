@@ -7,6 +7,10 @@ from typing import AsyncIterator, Callable, Dict, Iterator
 
 from prometheus_client import Counter, Histogram
 
+from .logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 _REQUEST_LATENCY = Histogram(
     "psds_test_request_latency_seconds",
     "Время выполнения HTTP/WebSocket запросов в тестах",
@@ -40,6 +44,16 @@ def measure_request(
         _REQUEST_LATENCY.labels(service=service, operation=operation, status=status).observe(
             elapsed
         )
+        # Логируем время выполнения запроса в JSON-логи
+        logger.info(
+            "HTTP request completed",
+            extra={
+                "service": service,
+                "operation": operation,
+                "status": status,
+                "duration_seconds": round(elapsed, 4),
+            },
+        )
 
 
 @asynccontextmanager
@@ -55,6 +69,16 @@ async def measure_request_async(
         status = status_getter()
         _REQUEST_LATENCY.labels(service=service, operation=operation, status=status).observe(
             elapsed
+        )
+        # Логируем время выполнения WebSocket-операции в JSON-логи
+        logger.info(
+            "WebSocket operation completed",
+            extra={
+                "service": service,
+                "operation": operation,
+                "status": status,
+                "duration_seconds": round(elapsed, 4),
+            },
         )
 
 

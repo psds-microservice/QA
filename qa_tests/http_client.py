@@ -46,8 +46,24 @@ class BaseApiClient:
         url = self._url(path)
         merged_headers = {**(self.default_headers or {}), **(headers or {})}
 
-        with measure_request("api", f"{method.upper()} {path}", lambda: str(resp.status_code)):
+        # Используем временную переменную для status, чтобы lambda могла её захватить
+        resp_status = "unknown"
+
+        def get_status() -> str:
+            return resp_status
+
+        logger.info(
+            "HTTP request started",
+            extra={
+                "method": method.upper(),
+                "url": url,
+                "path": path,
+            },
+        )
+
+        with measure_request("api", f"{method.upper()} {path}", get_status):
             resp = requests.request(method, url, json=json_body, headers=merged_headers, timeout=10)
+            resp_status = str(resp.status_code)
 
         if expected_status is not None:
             allowed = (
@@ -412,3 +428,22 @@ class OperatorPoolServiceClient(BaseApiClient):
     def list_operators(self) -> ApiResponse:
         """GET /operator/list — 200 { operators: [...] }."""
         return self._request("GET", "/operator/list", expected_status=(200, 500))
+
+
+class NotificationServiceClient(BaseApiClient):
+    """Client для notification-service: /health, /ready, POST /notify/session/:id."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def notify_session(self, session_id: str, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /notify/session/:id — body: event (required), payload (optional)."""
+        return self._request(
+            "POST",
+            f"/notify/session/{session_id}",
+            json_body=payload,
+            expected_status=(200, 400),
+        )

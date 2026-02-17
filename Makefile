@@ -2,7 +2,7 @@ PYTHON ?= python
 
 VENV_DIR := .venv
 
-.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local test-streaming-service-local test-operator-directory-service-local test-operator-pool-service-local
+.PHONY: help bootstrap test-local test-with-docker test-api-gateway-local test-user-service-local test-streaming-service-local test-operator-directory-service-local test-operator-pool-service-local test-notification-service-local
 
 help:
 	@echo "Доступные команды:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make test-streaming-service-local - запустить только тесты для Streaming Service"
 	@echo "  make test-operator-directory-service-local - только тесты Operator Directory Service"
 	@echo "  make test-operator-pool-service-local - только тесты Operator Pool Service"
+	@echo "  make test-notification-service-local - только тесты Notification Service"
 
 bootstrap:
 	@echo "==> Создание виртуального окружения (если нет)"
@@ -74,3 +75,10 @@ test-operator-pool-service-local:
 	@$(PYTHON) -m pytest -p no:xdist \
 		tests/test_operator_pool_health.py \
 		tests/test_operator_pool_rest.py
+
+test-notification-service-local:
+	@echo "==> Local tests, focus on Notification Service"
+	@$(PYTHON) -m pytest -p no:xdist \
+		tests/test_notification_health.py \
+		tests/test_notification_rest.py \
+		tests/test_notification_websocket.py

@@ -10,6 +10,7 @@ import pytest
 from .config import get_settings
 from .http_client import (
     ApiGatewayClient,
+    NotificationServiceClient,
     OperatorDirectoryServiceClient,
     OperatorPoolServiceClient,
     StreamingServiceClient,
@@ -61,6 +62,12 @@ def operator_directory_service_client(settings) -> OperatorDirectoryServiceClien
 def operator_pool_service_client(settings) -> OperatorPoolServiceClient:
     """Client для operator-pool-service (health, /operator/status, next, stats, list)."""
     return OperatorPoolServiceClient(base_url=settings.operator_pool_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def notification_service_client(settings) -> NotificationServiceClient:
+    """Client для notification-service (health, /notify/session/:id)."""
+    return NotificationServiceClient(base_url=settings.notification_service.base_url)
 
 
 @pytest.fixture(scope="session")

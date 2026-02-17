@@ -85,6 +85,8 @@ class Settings:
     streaming_service: ServiceConfig
     operator_directory_service: ServiceConfig
     operator_pool_service: ServiceConfig
+    notification_service: ServiceConfig
+    notification_ws: WebSocketConfig
     websocket: WebSocketConfig
     streaming_ws: WebSocketConfig
     api_paths: ApiPaths
@@ -138,6 +140,13 @@ def get_settings() -> Settings:
     operator_pool_base = (
         _get_env("OPERATOR_POOL_SERVICE_BASE_URL", "http://localhost:8094")
         or "http://localhost:8094"
+    )
+    notification_base = (
+        _get_env("NOTIFICATION_SERVICE_BASE_URL", "http://localhost:8092")
+        or "http://localhost:8092"
+    )
+    notification_ws_base = (
+        _get_env("NOTIFICATION_WS_BASE_URL", "ws://localhost:8092") or "ws://localhost:8092"
     )
 
     allure_dir_raw = _get_env("ALLURE_RESULTS_DIR", "allure-results")
@@ -223,6 +232,8 @@ def get_settings() -> Settings:
         streaming_service=ServiceConfig(base_url=streaming_base),
         operator_directory_service=ServiceConfig(base_url=operator_directory_base),
         operator_pool_service=ServiceConfig(base_url=operator_pool_base),
+        notification_service=ServiceConfig(base_url=notification_base),
+        notification_ws=WebSocketConfig(base_url=notification_ws_base),
         websocket=WebSocketConfig(base_url=websocket_base),
         streaming_ws=WebSocketConfig(base_url=streaming_ws_base),
         api_paths=api_paths,

@@ -142,6 +142,31 @@ pytest
 - **pydantic-модели** для строгой валидации DTO;
 - **метрики времени** (`measure_test_case`) и логирование в JSON.
 
+### Логирование и метрики запросов
+
+Фреймворк автоматически логирует все HTTP/WebSocket запросы с временем выполнения в JSON-формате:
+
+- **Логи выводятся в stdout** (консоль) в формате JSON
+- **Каждый запрос логируется** с полями: `method`, `url`, `path`, `status`, `duration_seconds`
+- **Сохранение в файл**: задайте переменную окружения `TEST_LOG_FILE=logs/test.log` для сохранения логов в файл
+
+Пример вывода лога запроса:
+```json
+{"timestamp": "2026-02-15T12:34:56.789Z", "level": "INFO", "logger": "qa_tests.http_client", "message": "HTTP request started", "method": "GET", "url": "http://localhost:8080/health", "path": "/health"}
+{"timestamp": "2026-02-15T12:34:56.812Z", "level": "INFO", "logger": "qa_tests.metrics", "message": "HTTP request completed", "service": "api", "operation": "GET /health", "status": "200", "duration_seconds": 0.023}
+```
+
+Для сохранения логов в файл:
+```bash
+export TEST_LOG_FILE=logs/test-$(date +%Y%m%d-%H%M%S).log
+pytest
+# или в Windows PowerShell:
+$env:TEST_LOG_FILE="logs/test-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+pytest
+```
+
+Логи также доступны в Allure отчётах (через `allure-results/`).
+
 ### Параллельный запуск и flaky тесты
 
 - Параллельный запуск включён по умолчанию через `pytest-xdist` (`-n auto` в `pytest.ini`/`pyproject.toml`).

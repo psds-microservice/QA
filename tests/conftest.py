@@ -126,17 +126,28 @@ def _only_operator_pool_tests_collected(session: pytest.Session) -> bool:
     )
 
 
+def _only_notification_tests_collected(session: pytest.Session) -> bool:
+    """True, если в сессии только тесты из test_notification_*.py."""
+    if not session.items:
+        return False
+    return all("test_notification" in (getattr(item, "nodeid", "") or "") for item in session.items)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def wait_for_services(settings, request: pytest.FixtureRequest) -> None:
     """
     Проверяет доступность сервисов по настроенным URL (сервисы уже запущены).
-    Если только тесты Streaming / Operator Directory / Operator Pool — проверяется этот сервис;
-    иначе — API Gateway.
+    Если только тесты Streaming / Operator Directory / Operator Pool / Notification —
+    проверяется этот сервис; иначе — API Gateway.
     Не поднимает Docker — для локального прогона запустите нужные сервисы вручную
     или используйте: make test-with-docker.
     """
     session = request.session
-    if _only_operator_pool_tests_collected(session):
+    if _only_notification_tests_collected(session):
+        base_url = settings.notification_service.base_url.rstrip("/")
+        service_name = "Notification Service"
+        hint = "Запустите notification-service вручную или: make test-with-docker"
+    elif _only_operator_pool_tests_collected(session):
         base_url = settings.operator_pool_service.base_url.rstrip("/")
         service_name = "Operator Pool Service"
         hint = "Запустите operator-pool-service вручную или: make test-with-docker"
