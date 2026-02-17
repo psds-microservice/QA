@@ -11,6 +11,7 @@ from .config import get_settings
 from .http_client import (
     ApiGatewayClient,
     OperatorDirectoryServiceClient,
+    OperatorPoolServiceClient,
     StreamingServiceClient,
     UserServiceClient,
 )
@@ -54,6 +55,12 @@ def streaming_service_client(settings) -> StreamingServiceClient:
 def operator_directory_service_client(settings) -> OperatorDirectoryServiceClient:
     """Client для operator-directory-service (health, /api/v1/operators CRUD)."""
     return OperatorDirectoryServiceClient(base_url=settings.operator_directory_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def operator_pool_service_client(settings) -> OperatorPoolServiceClient:
+    """Client для operator-pool-service (health, /operator/status, next, stats, list)."""
+    return OperatorPoolServiceClient(base_url=settings.operator_pool_service.base_url)
 
 
 @pytest.fixture(scope="session")

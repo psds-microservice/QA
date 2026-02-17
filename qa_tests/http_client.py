@@ -381,3 +381,34 @@ class OperatorDirectoryServiceClient(BaseApiClient):
             json_body=payload,
             expected_status=(200, 400, 404),
         )
+
+
+class OperatorPoolServiceClient(BaseApiClient):
+    """Client для operator-pool-service: /health, /ready, /operator/status, next, stats, list."""
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def set_status(self, payload: Dict[str, Any]) -> ApiResponse:
+        """POST /operator/status — user_id, available, max_sessions."""
+        return self._request(
+            "POST",
+            "/operator/status",
+            json_body=payload,
+            expected_status=(200, 400, 500),
+        )
+
+    def next_operator(self) -> ApiResponse:
+        """GET /operator/next — 200 { operator_id } или 404."""
+        return self._request("GET", "/operator/next", expected_status=(200, 404, 500))
+
+    def stats(self) -> ApiResponse:
+        """GET /operator/stats — 200 { available, total }."""
+        return self._request("GET", "/operator/stats", expected_status=(200, 500))
+
+    def list_operators(self) -> ApiResponse:
+        """GET /operator/list — 200 { operators: [...] }."""
+        return self._request("GET", "/operator/list", expected_status=(200, 500))
