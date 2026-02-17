@@ -41,7 +41,7 @@ def test_operator_pool_next_empty_or_ok(
     resp = operator_pool_service_client.next_operator()
     assert resp.status_code in (200, 404)
     if resp.status_code == 200 and resp.json:
-        assert "operator_id" in resp.json
+        assert "operatorId" in resp.json
 
 
 @pytest.mark.smoke
