@@ -10,6 +10,7 @@ import pytest
 from .config import get_settings
 from .http_client import (
     ApiGatewayClient,
+    DataChannelServiceClient,
     NotificationServiceClient,
     OperatorDirectoryServiceClient,
     OperatorPoolServiceClient,
@@ -82,6 +83,12 @@ def search_service_client(settings) -> SearchServiceClient:
 def ticket_service_client(settings) -> TicketServiceClient:
     """Client для ticket-service (health, /api/v1/tickets CRUD)."""
     return TicketServiceClient(base_url=settings.ticket_service.base_url)
+
+
+@pytest.fixture(scope="session")
+def data_channel_service_client(settings) -> DataChannelServiceClient:
+    """Client для data-channel-service (health, /data/:session_id/history, /data/file)."""
+    return DataChannelServiceClient(base_url=settings.data_channel_service.base_url)
 
 
 @pytest.fixture(scope="session")

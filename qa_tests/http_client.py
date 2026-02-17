@@ -549,3 +549,69 @@ class TicketServiceClient(BaseApiClient):
             json_body=payload,
             expected_status=(200, 400, 404, 500),
         )
+
+
+class DataChannelServiceClient(BaseApiClient):
+    """Client для data-channel-service: /health, /ready, GET /data/:session_id/history, POST /data/file."""  # noqa: E501
+
+    def health(self) -> ApiResponse:
+        return self.get("/health")
+
+    def ready(self) -> ApiResponse:
+        return self.get("/ready")
+
+    def get_history(
+        self,
+        session_id: str,
+        limit: Optional[int] = None,
+    ) -> ApiResponse:
+        """GET /data/:session_id/history?limit=..."""
+        params: Dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        path = f"/data/{session_id}/history?{qs}" if qs else f"/data/{session_id}/history"
+        return self._request("GET", path, expected_status=(200, 400, 500))
+
+    def upload_file(
+        self,
+        session_id: str,
+        user_id: str,
+        file_path: str,
+        filename: Optional[str] = None,
+    ) -> ApiResponse:
+        """POST /data/file — multipart/form-data с session_id, user_id, file."""
+        url = self._url("/data/file")
+        if filename is None:
+            from pathlib import Path
+
+            filename = Path(file_path).name
+
+        with open(file_path, "rb") as f:
+            files = {"file": (filename, f, "application/octet-stream")}
+            data = {"session_id": session_id, "user_id": user_id}
+
+            resp_status = "unknown"
+
+            def get_status() -> str:
+                return resp_status
+
+            logger.info(
+                "HTTP request started",
+                extra={
+                    "method": "POST",
+                    "url": url,
+                    "path": "/data/file",
+                },
+            )
+
+            with measure_request("api", "POST /data/file", get_status):
+                resp = requests.post(url, files=files, data=data, timeout=30)
+                resp_status = str(resp.status_code)
+
+        try:
+            payload = resp.json()
+        except ValueError:
+            payload = None
+
+        return ApiResponse(status_code=resp.status_code, json=payload, raw=resp)
