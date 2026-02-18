@@ -94,7 +94,7 @@ def data_channel_service_client(settings) -> DataChannelServiceClient:
 
 @pytest.fixture(scope="session")
 def session_manager_service_client(settings) -> SessionManagerServiceClient:
-    """Client для session-manager-service (health, /ready)."""
+    """Client для session-manager-service (health, /ready, /session/*)."""
     return SessionManagerServiceClient(base_url=settings.session_manager_service.base_url)
 
 

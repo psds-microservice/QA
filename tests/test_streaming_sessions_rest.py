@@ -60,16 +60,14 @@ def test_delete_session_ok(streaming_service_client: StreamingServiceClient) -> 
     session_id = create.json["session_id"]
 
     delete_resp = streaming_service_client.delete_session(session_id)
-    assert delete_resp.status_code in (204, 404)
+    assert delete_resp.status_code == 204
 
-    # После успешного завершения сессии: 404/410 (сессия недоступна) или 200 с пустыми operators
+    # После успешного завершения сессии она должна быть не найдена
     ops = streaming_service_client.get_session_operators(session_id)
-    assert ops.status_code in (404, 410, 200)
-    if ops.status_code == 200 and ops.json is not None:
-        assert ops.json.get("operators") == []
+    assert ops.status_code == 404
 
 
 @pytest.mark.negative
 def test_delete_session_not_found(streaming_service_client: StreamingServiceClient) -> None:
     resp = streaming_service_client.delete_session(NONEXISTENT_SESSION_ID)
-    assert resp.status_code in (404, 204)
+    assert resp.status_code == 404

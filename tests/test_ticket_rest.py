@@ -108,6 +108,6 @@ def test_update_ticket_not_found(ticket_service_client: TicketServiceClient) -> 
 
 @pytest.mark.negative
 def test_create_ticket_invalid_body(ticket_service_client: TicketServiceClient) -> None:
-    """POST /api/v1/tickets без обязательных полей — 400 или 500."""
+    """POST /api/v1/tickets без обязательных полей — 400."""
     resp = ticket_service_client.create_ticket({})
-    assert resp.status_code in (400, 500)
+    assert resp.status_code == 400

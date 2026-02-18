@@ -618,10 +618,74 @@ class DataChannelServiceClient(BaseApiClient):
 
 
 class SessionManagerServiceClient(BaseApiClient):
-    """Client для session-manager-service: /health, /ready."""
+    """Client для session-manager-service: /health, /ready, POST /session, GET /session/{id}, GET /session/{id}/participants, POST /session/join, POST /session/{id}/invite, POST /session/{id}/control."""  # noqa: E501
 
     def health(self) -> ApiResponse:
         return self.get("/health")
 
     def ready(self) -> ApiResponse:
         return self.get("/ready")
+
+    def create_session(
+        self, client_id: str, stream_session_id: Optional[str] = None
+    ) -> ApiResponse:
+        """POST /session — создать сессию консультации."""
+        payload: Dict[str, Any] = {"clientId": client_id}
+        if stream_session_id:
+            payload["streamSessionId"] = stream_session_id
+        return self._request(
+            "POST",
+            "/session",
+            json_body=payload,
+            expected_status=(200, 201, 400, 500),
+        )
+
+    def get_session(self, session_id: str) -> ApiResponse:
+        """GET /session/{id} — получить сессию."""
+        return self._request(
+            "GET",
+            f"/session/{session_id}",
+            expected_status=(200, 400, 404, 500),
+        )
+
+    def get_participants(self, session_id: str) -> ApiResponse:
+        """GET /session/{id}/participants — получить участников сессии."""
+        return self._request(
+            "GET",
+            f"/session/{session_id}/participants",
+            expected_status=(200, 400, 404, 500),
+        )
+
+    def join_session(self, session_id: str, pin: str, user_id: str) -> ApiResponse:
+        """POST /session/join — присоединиться к сессии."""
+        payload: Dict[str, Any] = {
+            "sessionId": session_id,
+            "pin": pin,
+            "userId": user_id,
+        }
+        return self._request(
+            "POST",
+            "/session/join",
+            json_body=payload,
+            expected_status=(200, 400, 404, 500),
+        )
+
+    def invite_operator(self, session_id: str, operator_id: str) -> ApiResponse:
+        """POST /session/{id}/invite — пригласить оператора."""
+        payload: Dict[str, Any] = {"operatorId": operator_id}
+        return self._request(
+            "POST",
+            f"/session/{session_id}/invite",
+            json_body=payload,
+            expected_status=(200, 400, 404, 500),
+        )
+
+    def control_session(self, session_id: str, action: str) -> ApiResponse:
+        """POST /session/{id}/control — управление сессией."""
+        payload: Dict[str, Any] = {"action": action}
+        return self._request(
+            "POST",
+            f"/session/{session_id}/control",
+            json_body=payload,
+            expected_status=(200, 400, 404, 500),
+        )
