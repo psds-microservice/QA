@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import Any, Dict, Optional
 
 from faker import Faker
@@ -9,10 +10,15 @@ from .models import UserRegistrationRequest
 faker = Faker()
 
 
+def _unique_email() -> str:
+    # faker.unique is per-process only; UUID ensures uniqueness across re-runs with persistent DB.
+    return f"qa+{uuid.uuid4()}@example.com"
+
+
 def build_user_registration() -> Dict[str, str]:
     """Валидные данные для регистрации (User Service: username, email, password, role)."""
     user = UserRegistrationRequest(
-        email=faker.unique.email(),
+        email=_unique_email(),
         password=faker.password(length=12),
         full_name=faker.name(),
     )
@@ -28,7 +34,7 @@ def build_invalid_registration_short_password() -> Dict[str, str]:
     """Неверные данные: слишком короткий пароль (User Service: min 6 символов)."""
     return {
         "username": faker.name(),
-        "email": faker.unique.email(),
+        "email": _unique_email(),
         "password": "123",
         "role": "client",
     }
@@ -48,7 +54,7 @@ def build_invalid_registration_invalid_role() -> Dict[str, str]:
     """Неверные данные: недопустимая роль."""
     return {
         "username": faker.name(),
-        "email": faker.unique.email(),
+        "email": _unique_email(),
         "password": faker.password(length=12),
         "role": "superadmin",
     }
@@ -63,7 +69,7 @@ def build_invalid_login_empty_email() -> Dict[str, str]:
 
 
 def build_invalid_login_empty_password() -> Dict[str, str]:
-    return {"email": faker.unique.email(), "password": ""}
+    return {"email": _unique_email(), "password": ""}
 
 
 def build_refresh_payload(refresh_token: str) -> Dict[str, str]:
