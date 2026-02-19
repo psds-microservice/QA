@@ -47,6 +47,86 @@ def test_join_session_invalid(
     assert resp.status_code in (400, 404)
 
 
+@pytest.mark.negative
+def test_join_session_not_found_by_session_id(
+    session_manager_service_client: SessionManagerServiceClient,
+) -> None:
+    """POST /session/join с несуществующим session_id — должен вернуть 404, не панику."""
+    non_existent_session_id = str(uuid.uuid4())
+    user_id = str(uuid.uuid4())
+    resp = session_manager_service_client.join_session(
+        session_id=non_existent_session_id, pin="", user_id=user_id
+    )
+    # Должен вернуть 404 (Not Found), а не 500 (Internal Server Error от паники)
+    assert (
+        resp.status_code == 404
+    ), f"Expected 404, got {resp.status_code}. Response: {resp.raw.text}"
+    # Проверяем, что ответ валидный JSON (не HTML страница ошибки от паники)
+    assert resp.json is not None, "Response should be valid JSON, not HTML error page"
+    # Проверяем, что в ответе есть сообщение об ошибке
+    assert (
+        "not found" in resp.json.get("message", "").lower() or "not found" in resp.raw.text.lower()
+    )
+
+
+@pytest.mark.negative
+def test_join_session_not_found_by_pin(
+    session_manager_service_client: SessionManagerServiceClient,
+) -> None:
+    """POST /session/join с несуществующим PIN — должен вернуть 404, не панику."""
+    non_existent_pin = "999999"  # PIN, которого точно нет
+    user_id = str(uuid.uuid4())
+    resp = session_manager_service_client.join_session(
+        session_id="", pin=non_existent_pin, user_id=user_id
+    )
+    # Должен вернуть 404 (Not Found), а не 500 (Internal Server Error от паники)
+    assert (
+        resp.status_code == 404
+    ), f"Expected 404, got {resp.status_code}. Response: {resp.raw.text}"
+    # Проверяем, что ответ валидный JSON (не HTML страница ошибки от паники)
+    assert resp.json is not None, "Response should be valid JSON, not HTML error page"
+    # Проверяем, что в ответе есть сообщение об ошибке
+    assert (
+        "not found" in resp.json.get("message", "").lower() or "not found" in resp.raw.text.lower()
+    )
+
+
+@pytest.mark.negative
+def test_join_session_invalid_session_id_format(
+    session_manager_service_client: SessionManagerServiceClient,
+) -> None:
+    """POST /session/join с невалидным форматом session_id — должен вернуть 400, не панику."""
+    invalid_session_id = "not-a-valid-uuid"
+    user_id = str(uuid.uuid4())
+    resp = session_manager_service_client.join_session(
+        session_id=invalid_session_id, pin="", user_id=user_id
+    )
+    # Должен вернуть 400 (Bad Request), а не 500 (Internal Server Error от паники)
+    assert (
+        resp.status_code == 400
+    ), f"Expected 400, got {resp.status_code}. Response: {resp.raw.text}"
+    # Проверяем, что ответ валидный JSON (не HTML страница ошибки от паники)
+    assert resp.json is not None, "Response should be valid JSON, not HTML error page"
+
+
+@pytest.mark.negative
+def test_join_session_invalid_user_id_format(
+    session_manager_service_client: SessionManagerServiceClient,
+) -> None:
+    """POST /session/join с невалидным форматом user_id — должен вернуть 400, не панику."""
+    session_id = str(uuid.uuid4())
+    invalid_user_id = "not-a-valid-uuid"
+    resp = session_manager_service_client.join_session(
+        session_id=session_id, pin="", user_id=invalid_user_id
+    )
+    # Должен вернуть 400 (Bad Request), а не 500 (Internal Server Error от паники)
+    assert (
+        resp.status_code == 400
+    ), f"Expected 400, got {resp.status_code}. Response: {resp.raw.text}"
+    # Проверяем, что ответ валидный JSON (не HTML страница ошибки от паники)
+    assert resp.json is not None, "Response should be valid JSON, not HTML error page"
+
+
 @pytest.mark.smoke
 def test_invite_operator_not_found(
     session_manager_service_client: SessionManagerServiceClient,
