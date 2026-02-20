@@ -10,6 +10,8 @@ from qa_tests.http_client import TicketServiceClient
 
 # ID тикета — число (uint64), не UUID
 NONEXISTENT_TICKET_ID = "999999"
+# Невалидный id (UUID вместо числа) — сервис должен вернуть 400
+INVALID_ID_UUID = "00000000-0000-0000-0000-000000000001"
 
 
 @pytest.mark.smoke
@@ -92,15 +94,34 @@ def test_update_ticket(ticket_service_client: TicketServiceClient) -> None:
 
 
 @pytest.mark.negative
+def test_get_ticket_invalid_id(ticket_service_client: TicketServiceClient) -> None:
+    """GET /api/v1/tickets/:id с невалидным id (UUID) — 400 (Кейс A)."""
+    resp = ticket_service_client.get_ticket(INVALID_ID_UUID)
+    assert resp.status_code == 400
+    if resp.json:
+        assert "error" in resp.json or "invalid" in str(resp.json).lower()
+
+
+@pytest.mark.negative
+def test_update_ticket_invalid_id(ticket_service_client: TicketServiceClient) -> None:
+    """PUT /api/v1/tickets/:id с невалидным id (UUID) — 400 (Кейс A)."""
+    payload = {"subject": "Test", "notes": "Test"}
+    resp = ticket_service_client.update_ticket(INVALID_ID_UUID, payload)
+    assert resp.status_code == 400
+    if resp.json:
+        assert "error" in resp.json or "invalid" in str(resp.json).lower()
+
+
+@pytest.mark.negative
 def test_get_ticket_not_found(ticket_service_client: TicketServiceClient) -> None:
-    """GET /api/v1/tickets/:id для несуществующего id — 404."""
+    """GET /api/v1/tickets/:id для несуществующего числового id — 404 (Кейс B)."""
     resp = ticket_service_client.get_ticket(NONEXISTENT_TICKET_ID)
     assert resp.status_code == 404
 
 
 @pytest.mark.negative
 def test_update_ticket_not_found(ticket_service_client: TicketServiceClient) -> None:
-    """PUT /api/v1/tickets/:id для несуществующего id — 404."""
+    """PUT /api/v1/tickets/:id для несуществующего числового id — 404 (Кейс B)."""
     payload = {"subject": "Test", "notes": "Test"}
     resp = ticket_service_client.update_ticket(NONEXISTENT_TICKET_ID, payload)
     assert resp.status_code == 404
