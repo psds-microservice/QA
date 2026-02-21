@@ -1,4 +1,4 @@
-"""REST API search-service: GET /search, POST /search/index/*."""
+"""REST API search-service: GET /search/tickets|sessions|operators, POST /search/index/*."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from qa_tests.http_client import SearchServiceClient
 
 @pytest.mark.smoke
 def test_search_empty_query(search_service_client: SearchServiceClient) -> None:
-    """GET /search с пустым запросом возвращает 200."""
+    """GET /search/tickets с limit возвращает 200."""
     resp = search_service_client.search("")
     assert resp.status_code == 200
     assert resp.json is not None
@@ -19,7 +19,7 @@ def test_search_empty_query(search_service_client: SearchServiceClient) -> None:
 
 @pytest.mark.smoke
 def test_search_with_query(search_service_client: SearchServiceClient) -> None:
-    """GET /search?q=test возвращает 200."""
+    """GET /search/tickets с query params возвращает 200."""
     resp = search_service_client.search("test")
     assert resp.status_code == 200
     assert resp.json is not None
@@ -27,7 +27,7 @@ def test_search_with_query(search_service_client: SearchServiceClient) -> None:
 
 @pytest.mark.smoke
 def test_search_with_type_filter(search_service_client: SearchServiceClient) -> None:
-    """GET /search?q=test&type=tickets возвращает 200."""
+    """GET /search/tickets с type=tickets возвращает 200."""
     resp = search_service_client.search("test", type_filter="tickets")
     assert resp.status_code == 200
     assert resp.json is not None
@@ -35,7 +35,7 @@ def test_search_with_type_filter(search_service_client: SearchServiceClient) -> 
 
 @pytest.mark.smoke
 def test_search_with_limit(search_service_client: SearchServiceClient) -> None:
-    """GET /search?q=test&limit=10 возвращает 200."""
+    """GET /search/tickets с limit=10 возвращает 200."""
     resp = search_service_client.search("test", limit=10)
     assert resp.status_code == 200
     assert resp.json is not None

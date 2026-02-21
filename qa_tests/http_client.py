@@ -460,7 +460,8 @@ class NotificationServiceClient(BaseApiClient):
 
 
 class SearchServiceClient(BaseApiClient):
-    """Client для search-service: /health, /ready, GET /search, POST /search/index/*."""
+    """search-service: /health, /ready,
+    GET /search/tickets|sessions|operators, POST /search/index/*."""
 
     def health(self) -> ApiResponse:
         return self.get("/health")
@@ -474,12 +475,13 @@ class SearchServiceClient(BaseApiClient):
         type_filter: Optional[str] = None,
         limit: int = 20,
     ) -> ApiResponse:
-        """GET /search?q=...&type=tickets|sessions|operators|all&limit=20."""
-        params: Dict[str, Any] = {"q": query, "limit": limit}
-        if type_filter is not None:
-            params["type"] = type_filter
+        """GET /search/{tickets|sessions|operators} with limit/offset; type_filter picks which."""
+        segment = (type_filter or "tickets").lower()
+        if segment not in ("tickets", "sessions", "operators"):
+            segment = "tickets"
+        params: Dict[str, Any] = {"limit": limit, "offset": 0}
         qs = "&".join(f"{k}={v}" for k, v in params.items())
-        path = f"/search?{qs}"
+        path = f"/search/{segment}?{qs}"
         return self._request("GET", path, expected_status=(200, 500))
 
     def index_ticket(self, payload: Dict[str, Any]) -> ApiResponse:
