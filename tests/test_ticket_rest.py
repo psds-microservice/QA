@@ -80,13 +80,16 @@ def test_update_ticket(ticket_service_client: TicketServiceClient) -> None:
     ticket_id = create.json.get("id")
     assert ticket_id is not None
 
-    # Update (ID — число, конвертируем в строку)
+    # Update (ID — число, конвертируем в строку). X-Caller-Id обязателен:
+    # сервис проверяет, что caller — client или operator тикета.
     update_payload = {
         "subject": "Updated subject",
         "notes": "Updated notes",
         "status": "closed",
     }
-    update = ticket_service_client.update_ticket(str(ticket_id), update_payload)
+    update = ticket_service_client.update_ticket(
+        str(ticket_id), update_payload, caller_id=client_id
+    )
     assert update.status_code == 200
     assert update.json is not None
     assert update.json.get("subject") == "Updated subject"

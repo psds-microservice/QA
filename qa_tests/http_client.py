@@ -551,13 +551,27 @@ class TicketServiceClient(BaseApiClient):
         path = f"/api/v1/tickets?{qs}" if qs else "/api/v1/tickets"
         return self._request("GET", path, expected_status=(200, 500))
 
-    def update_ticket(self, ticket_id: str, payload: Dict[str, Any]) -> ApiResponse:
-        """PUT /api/v1/tickets/:id — id должен быть числом (uint64)."""
+    def update_ticket(
+        self,
+        ticket_id: str,
+        payload: Dict[str, Any],
+        *,
+        caller_id: Optional[str] = None,
+    ) -> ApiResponse:
+        """PUT /api/v1/tickets/:id — id должен быть числом (uint64).
+        caller_id передаётся как Grpc-Metadata-X-Caller-Id для проверки прав
+        (клиент или оператор тикета)."""
+        # grpc-gateway forwards headers with prefix Grpc-Metadata- into gRPC
+        # metadata (key lowercased).
+        headers: Optional[Dict[str, str]] = None
+        if caller_id is not None:
+            headers = {"Grpc-Metadata-X-Caller-Id": caller_id}
         return self._request(
             "PUT",
             f"/api/v1/tickets/{ticket_id}",
             json_body=payload,
-            expected_status=(200, 400, 404, 500),
+            headers=headers,
+            expected_status=(200, 400, 403, 404, 500),
         )
 
 
