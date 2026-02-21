@@ -69,14 +69,14 @@ def test_get_me_unauthorized(api_gateway_client: ApiGatewayClient) -> None:
 
 @pytest.mark.smoke
 @allure.tag("me", "user-service")
-def test_update_me_authenticated(api_gateway_client: ApiGatewayClient) -> None:
-    """PUT /users/me с валидным токеном обновляет профиль."""
+def test_update_me_authenticated_returns_200(api_gateway_client: ApiGatewayClient) -> None:
+    """PUT /users/me с валидным токеном обновляет профиль (One Behavior Per Test: 200 only)."""
     mark_feature("User Management")
     mark_story("Обновление профиля (me)")
     mark_severity("critical")
     link_jira("PSDS-103")
 
-    with measure_test_case("test_update_me_authenticated"):
+    with measure_test_case("test_update_me_authenticated_returns_200"):
         with allure_step("Регистрация и логин"):
             payload = data_factory.build_user_registration()
             api_gateway_client.register_user(payload)
@@ -105,9 +105,8 @@ def test_update_me_authenticated(api_gateway_client: ApiGatewayClient) -> None:
                 "update_response", json.dumps(resp.json or {}, ensure_ascii=False, indent=2)
             )
 
-        assert resp.status_code in (200, 500), f"Unexpected status: {resp.status_code}"
-        if resp.status_code == 200:
-            assert resp.json
+        assert resp.status_code == 200, f"Unexpected status: {resp.status_code}"
+        assert resp.json
 
 
 @pytest.mark.negative

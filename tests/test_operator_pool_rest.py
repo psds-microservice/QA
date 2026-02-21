@@ -34,14 +34,18 @@ def test_operator_pool_stats_ok(
 
 
 @pytest.mark.smoke
-def test_operator_pool_next_empty_or_ok(
+def test_operator_pool_next_returns_200_when_operator_available(
     operator_pool_service_client: OperatorPoolServiceClient,
 ) -> None:
-    """GET /operator/next — 200 с operator_id или 404 если пул пуст."""
+    """GET /operator/next возвращает 200 и operatorId при наличии оператора в пуле (AAA)."""
+    user_id = str(uuid.uuid4())
+    operator_pool_service_client.set_status(
+        {"user_id": user_id, "available": True, "max_sessions": 2}
+    )
     resp = operator_pool_service_client.next_operator()
-    assert resp.status_code in (200, 404)
-    if resp.status_code == 200 and resp.json:
-        assert "operatorId" in resp.json
+    assert resp.status_code == 200
+    assert resp.json is not None
+    assert "operatorId" in resp.json
 
 
 @pytest.mark.smoke

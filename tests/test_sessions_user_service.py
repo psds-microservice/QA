@@ -138,33 +138,33 @@ def test_create_session_invalid_type(api_gateway_client: ApiGatewayClient) -> No
 
 @pytest.mark.negative
 @allure.tag("sessions", "user-service")
-def test_list_sessions_unauthorized(api_gateway_client: ApiGatewayClient) -> None:
-    """GET /users/{id}/sessions без токена — сервис может вернуть 200 (пустой список) или 401."""
+def test_list_sessions_unauthorized_returns_401(api_gateway_client: ApiGatewayClient) -> None:
+    """GET /users/{id}/sessions без токена возвращает 401 (One Behavior Per Test)."""
     mark_feature("Sessions")
     mark_story("Список сессий")
     mark_severity("normal")
     link_jira("PSDS-402")
 
-    with measure_test_case("test_list_sessions_unauthorized"):
+    with measure_test_case("test_list_sessions_unauthorized_returns_401"):
         _, _, user_id = _register_and_get_token(api_gateway_client)
         resp = api_gateway_client._request(
             "GET",
             api_gateway_client._p("users_sessions", id=user_id),
             expected_status=None,
         )
-        assert resp.status_code in (200, 401)
+        assert resp.status_code == 401
 
 
 @pytest.mark.negative
 @allure.tag("sessions", "user-service")
-def test_create_session_unauthorized(api_gateway_client: ApiGatewayClient) -> None:
-    """POST /users/{id}/sessions без токена — сервис может вернуть 200 (создаст сессию) или 401."""
+def test_create_session_unauthorized_returns_401(api_gateway_client: ApiGatewayClient) -> None:
+    """POST /users/{id}/sessions без токена возвращает 401 (One Behavior Per Test)."""
     mark_feature("Sessions")
     mark_story("Создание сессии")
     mark_severity("normal")
     link_jira("PSDS-402")
 
-    with measure_test_case("test_create_session_unauthorized"):
+    with measure_test_case("test_create_session_unauthorized_returns_401"):
         _, _, user_id = _register_and_get_token(api_gateway_client)
         payload = data_factory.build_create_session_payload()
         resp = api_gateway_client._request(
@@ -173,7 +173,7 @@ def test_create_session_unauthorized(api_gateway_client: ApiGatewayClient) -> No
             json_body=payload,
             expected_status=None,
         )
-        assert resp.status_code in (200, 201, 401)
+        assert resp.status_code == 401
 
 
 @pytest.mark.negative
