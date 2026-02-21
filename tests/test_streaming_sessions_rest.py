@@ -38,7 +38,7 @@ def test_get_session_operators_empty(streaming_service_client: StreamingServiceC
     assert create.status_code == 201 and create.json is not None
     session_id = create.json["session_id"]
 
-    resp = streaming_service_client.get_session_operators(session_id)
+    resp = streaming_service_client.get_session_operators(session_id, x_user_id=client_id)
     assert resp.status_code == 200 and resp.json is not None
     body = resp.json
     assert body.get("session_id") == session_id
@@ -48,7 +48,11 @@ def test_get_session_operators_empty(streaming_service_client: StreamingServiceC
 
 @pytest.mark.negative
 def test_get_session_operators_not_found(streaming_service_client: StreamingServiceClient) -> None:
-    resp = streaming_service_client.get_session_operators(NONEXISTENT_SESSION_ID)
+    # X-User-ID required; use any valid UUID so server returns 404 (session not found), not 403.
+    resp = streaming_service_client.get_session_operators(
+        NONEXISTENT_SESSION_ID,
+        x_user_id="00000000-0000-0000-0000-000000000002",
+    )
     assert resp.status_code == 404
 
 
@@ -59,15 +63,19 @@ def test_delete_session_ok(streaming_service_client: StreamingServiceClient) -> 
     assert create.status_code == 201 and create.json is not None
     session_id = create.json["session_id"]
 
-    delete_resp = streaming_service_client.delete_session(session_id)
+    delete_resp = streaming_service_client.delete_session(session_id, x_user_id=client_id)
     assert delete_resp.status_code == 204
 
     # После успешного завершения сессии она должна быть не найдена
-    ops = streaming_service_client.get_session_operators(session_id)
+    ops = streaming_service_client.get_session_operators(session_id, x_user_id=client_id)
     assert ops.status_code == 404
 
 
 @pytest.mark.negative
 def test_delete_session_not_found(streaming_service_client: StreamingServiceClient) -> None:
-    resp = streaming_service_client.delete_session(NONEXISTENT_SESSION_ID)
+    # X-User-ID required; use any valid UUID so server returns 404 (session not found), not 403.
+    resp = streaming_service_client.delete_session(
+        NONEXISTENT_SESSION_ID,
+        x_user_id="00000000-0000-0000-0000-000000000002",
+    )
     assert resp.status_code == 404

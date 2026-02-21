@@ -336,13 +336,23 @@ class StreamingServiceClient(BaseApiClient):
         # 201 — как указано в README streaming-service
         return self._request("POST", "/sessions", json_body=payload, expected_status=201)
 
-    def delete_session(self, session_id: str) -> ApiResponse:
-        return self._request("DELETE", f"/sessions/{session_id}", expected_status=(204, 404))
+    def delete_session(self, session_id: str, *, x_user_id: Optional[str] = None) -> ApiResponse:
+        headers = {"X-User-ID": x_user_id} if x_user_id else None
+        return self._request(
+            "DELETE",
+            f"/sessions/{session_id}",
+            headers=headers,
+            expected_status=(204, 404),
+        )
 
-    def get_session_operators(self, session_id: str) -> ApiResponse:
+    def get_session_operators(
+        self, session_id: str, *, x_user_id: Optional[str] = None
+    ) -> ApiResponse:
+        headers = {"X-User-ID": x_user_id} if x_user_id else None
         return self._request(
             "GET",
             f"/sessions/{session_id}/operators",
+            headers=headers,
             expected_status=(200, 404),
         )
 
