@@ -690,12 +690,18 @@ class SessionManagerServiceClient(BaseApiClient):
             expected_status=(200, 400, 404, 500),
         )
 
-    def control_session(self, session_id: str, action: str) -> ApiResponse:
-        """POST /session/{id}/control — управление сессией."""
+    def control_session(
+        self, session_id: str, action: str, caller_id: Optional[str] = None
+    ) -> ApiResponse:
+        """POST /session/{id}/control. Optional caller_id -> X-Caller-Id."""
         payload: Dict[str, Any] = {"action": action}
+        headers: Optional[Dict[str, str]] = None
+        if caller_id is not None:
+            headers = {"X-Caller-Id": caller_id}
         return self._request(
             "POST",
             f"/session/{session_id}/control",
             json_body=payload,
-            expected_status=(200, 400, 404, 500),
+            headers=headers,
+            expected_status=(200, 400, 403, 404, 500),
         )

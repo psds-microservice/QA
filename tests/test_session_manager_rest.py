@@ -144,7 +144,8 @@ def test_control_session_not_found(
 ) -> None:
     """POST /session/{id}/control для несуществующей сессии — 404."""
     session_id = str(uuid.uuid4())
-    resp = session_manager_service_client.control_session(session_id, "start")
+    caller_id = str(uuid.uuid4())  # any UUID so permission check passes, then 404
+    resp = session_manager_service_client.control_session(session_id, "start", caller_id=caller_id)
     assert resp.status_code == 404
 
 
@@ -228,15 +229,14 @@ def test_control_session_invalid_id(
 def test_control_session_missing_action(
     session_manager_service_client: SessionManagerServiceClient,
 ) -> None:
-    """POST /session/{id}/control без action — 400 или 404."""
+    """POST /session/{id}/control без action — 400 (action validated before caller check)."""
     session_id = str(uuid.uuid4())
     resp = session_manager_service_client._request(
         "POST",
         f"/session/{session_id}/control",
         json_body={},
-        expected_status=(200, 400, 404, 500),
+        expected_status=(200, 400, 403, 404, 500),
     )
-    # Валидация action выполняется до проверки существования сессии
     assert resp.status_code == 400
 
 
@@ -437,8 +437,8 @@ def test_control_session_ok(
     assert create_resp.status_code in (200, 201) and create_resp.json is not None
     session_id = create_resp.json["id"]
 
-    # Изменяем статус на active
-    resp = session_manager_service_client.control_session(session_id, "active")
+    # Изменяем статус на active (caller = session client, so permission allowed)
+    resp = session_manager_service_client.control_session(session_id, "active", caller_id=client_id)
     assert resp.status_code == 200
     assert resp.json is not None
     assert resp.json.get("ok") is True
@@ -460,8 +460,10 @@ def test_control_session_finish(
     assert create_resp.status_code in (200, 201) and create_resp.json is not None
     session_id = create_resp.json["id"]
 
-    # Завершаем сессию
-    resp = session_manager_service_client.control_session(session_id, "finished")
+    # Завершаем сессию (caller = session client, so permission allowed)
+    resp = session_manager_service_client.control_session(
+        session_id, "finished", caller_id=client_id
+    )
     assert resp.status_code == 200
     assert resp.json is not None
     assert resp.json.get("ok") is True
